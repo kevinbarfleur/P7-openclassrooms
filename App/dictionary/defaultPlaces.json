@@ -1,0 +1,45 @@
+[
+  {
+    "restaurantName": "Bronco",
+    "address": "39 Rue des Petites Écuries, 75010 Paris",
+    "lat": 48.8737815,
+    "lng": 2.3501649,
+    "ratings": [
+      {
+        "name": "Miles Tone",
+        "stars": 4,
+        "comment": "Un excellent restaurant, j'y reviendrai ! Par contre il vaut mieux aimer la viande."
+      },
+      {
+        "name": "Natalya Undergrowth",
+        "stars": 5,
+        "comment": "Tout simplement mon restaurant préféré !"
+      }
+    ]
+  },
+  {
+    "restaurantName": "Babalou",
+    "address": "4 Rue Lamarck, 75018 Paris",
+    "lat": 48.8865035,
+    "lng": 2.3442197,
+    "ratings": []
+  },
+  {
+    "restaurantName": "Chez Vincent",
+    "address": "12 Rue Saint-Michel, 20200 Bastia",
+    "lat": 42.69322,
+    "lng": 9.45145,
+    "ratings": [
+      {
+        "name": "Hanson Deck",
+        "stars": 5,
+        "comment": "Une magnifique pizzeria délicieuse cachée sur les remparts. A essayer !"
+      },
+      {
+        "name": "Sue Shei",
+        "stars": 4.5,
+        "comment": "J'ai trouvé ça top !"
+      }
+    ]
+  }
+]

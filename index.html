@@ -1,13 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite App</title>
+    <title>Restaurant Reviews</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
   </head>
   <body>
-    <div id="app"></div>
-    <script type="module" src="/main.js"></script>
+    <div id="app">
+      <div id="map"></div>
+      <div id="places">
+        <div class="toggle-places-container">
+          <input id="toggle-places" type="checkbox" class="toggle-places" />
+          <label for="toggle-places">Use Google places</label>
+        </div>
+
+        <div class="autocomplete-container hidden">
+          <input type="text" class="autocomplete" />
+        </div>
+        <div id="results"></div>
+      </div>
+
+      <div class="modal-overlay">
+        <div class="review-modal form-modal">
+          <button class="close-button">Close</button>
+
+          <h3 class="modal-title">Add review</h3>
+          <h3 class="modal-name"></h3>
+          <form id="review-form">
+            <label for="">Full Name:</label>
+            <input type="text" id="review-name" class="name-input" required />
+            <input
+              type="range"
+              value="5"
+              min="0"
+              max="5"
+              class="stars-input"
+              required
+            />
+            <label for="">Comment:</label>
+            <textarea
+              required
+              name="review"
+              class="comment-input"
+              id="review-content"
+              cols="30"
+              rows="10"
+            ></textarea>
+            <button type="submit">Submit review</button>
+          </form>
+        </div>
+        <div class="add-modal form-modal">
+          <button class="close-button">Close</button>
+
+          <h3 class="modal-title">Add an establishment</h3>
+          <h3 class="modal-address"></h3>
+          <form id="add-form">
+            <label for="">Name:</label>
+            <input
+              type="text"
+              id="establishment-name"
+              class="name-input"
+              required
+            />
+            <button type="submit">Submit establishment</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="notification"></div>
+      <div class="little-modal">
+        <div class="current-address"></div>
+        <div class="action add-address">+ Add an address</div>
+        <div class="action cancel-modal">Cancel</div>
+      </div>
+    </div>
+
+    <script type="module" src="./App/main.js"></script>
   </body>
 </html>

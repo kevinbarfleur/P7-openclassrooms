@@ -1,0 +1,421 @@
+@font-face {
+  font-family: system;
+  font-style: normal;
+  font-weight: 300;
+  src: local(".SFNSText-Light"), local(".HelveticaNeueDeskInterface-Light"),
+    local(".LucidaGrandeUI"), local("Ubuntu Light"), local("Segoe UI Light"),
+    local("Roboto-Light"), local("DroidSans"), local("Tahoma");
+}
+
+:root {
+  --white: hsla(215, 100%, 100%, 1);
+  --lightgrey: rgba(245, 245, 245, 0.8);
+  --grey: rgba(136, 136, 136, 0.8);
+  --gold: hsl(48.9, 98.04%, 60%);
+  --dark: rgba(0, 0, 0, 0.5);
+  --red: rgb(252, 66, 66);
+}
+
+#app {
+  font-family: "system";
+  width: 100%;
+  height: 100vh;
+
+  #map {
+    width: 100%;
+    height: 100%;
+  }
+
+  #places {
+    position: absolute;
+    top: 62px;
+    left: 10px;
+    max-width: 260px;
+    min-height: 50px;
+    background-color: var(--white);
+    box-shadow: rgba(0, 0, 0, 0.3) 0 1px 4px -1px;
+
+    .toggle-places-container {
+      margin: 1rem 1rem 0 1rem;
+      width: calc(100% - 2rem);
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+
+      .toggle-places {
+        margin-right: 0.5rem;
+
+        &:hover {
+          cursor: pointer;
+        }
+      }
+
+      label {
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: var(--grey);
+
+        &:hover {
+          cursor: pointer;
+        }
+      }
+    }
+
+    .autocomplete-container {
+      display: block;
+      .autocomplete {
+        margin: 1rem 1rem 0 1rem;
+        width: calc(100% - 2rem);
+        font-size: 0.8rem;
+      }
+
+      &.hidden {
+        display: none;
+      }
+    }
+    .place {
+      padding: 0.4rem 0.8rem;
+      margin: 0.4rem;
+      border-radius: 0.2rem;
+      background-color: var(--white);
+      transition: 0.2s;
+      display: block;
+
+      &:hover {
+        background-color: var(--lightgrey);
+        transition: 0.2s;
+        cursor: pointer;
+      }
+
+      opacity: 1;
+      transition: 0.4s;
+
+      .hidden {
+        display: none;
+      }
+
+      .name {
+        font-size: 0.8rem;
+      }
+
+      .adress {
+        font-size: 0.8rem;
+      }
+
+      .ratings {
+        max-height: 0;
+        overflow: hidden;
+        transition: 0.4s;
+
+        .rating-container {
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-start;
+          align-items: flex-start;
+          margin-top: 0.6rem;
+
+          .user-name {
+            font-size: 0.7rem;
+          }
+
+          .avatar {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            margin-top: 0.1rem;
+            margin-right: 0.6rem;
+            min-width: 30px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            color: var(--white);
+          }
+          .stars {
+            margin: 0.1rem 0;
+            z-index: 2;
+            position: relative;
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            align-items: center;
+            width: fit-content;
+            overflow: hidden;
+
+            .star {
+              z-index: 3;
+              width: 12px;
+              height: 12px;
+              background-color: var(--gold);
+              clip-path: polygon(
+                50% 0%,
+                61% 35%,
+                98% 35%,
+                68% 57%,
+                79% 91%,
+                50% 70%,
+                21% 91%,
+                32% 57%,
+                2% 35%,
+                39% 35%
+              );
+            }
+          }
+        }
+
+        .add-review {
+          font-size: 0.7rem;
+          width: 100%;
+          background-color: rgba(51, 51, 51, 0.05);
+          border-radius: 8px;
+          border-width: 0;
+          color: #333333;
+          cursor: pointer;
+          display: inline-block;
+          font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica,
+            Arial, sans-serif;
+          font-weight: 500;
+          line-height: 20px;
+          list-style: none;
+          margin: 0;
+          margin-top: 0.6rem;
+          text-align: center;
+          transition: all 200ms;
+          vertical-align: baseline;
+          white-space: nowrap;
+          user-select: none;
+          -webkit-user-select: none;
+          touch-action: manipulation;
+          transition: 0.2s;
+          opacity: 0.6;
+
+          &:hover {
+            transition: 0.2s;
+            opacity: 1;
+          }
+        }
+      }
+
+      .comment {
+        font-size: 0.7rem;
+      }
+    }
+  }
+
+  .notification {
+    transform: translateX(-150%);
+    opacity: 0;
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    padding: 0.4rem 0.8rem;
+    margin: 0.4rem;
+    border-radius: 0.2rem;
+    background-color: var(--white);
+    transition: 0.4s;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+    &.active {
+      transition: 0.4s;
+      transform: translateX(0%);
+      opacity: 1;
+    }
+
+    .notification-icon {
+      width: 25px;
+      height: 25px;
+      margin-right: 0.4rem;
+    }
+  }
+
+  .little-modal {
+    position: absolute;
+    z-index: 9;
+    padding: 0.2rem;
+    font-size: 0.7rem;
+    background-color: var(--white);
+    box-shadow: rgba(0, 0, 0, 0.3) 0 1px 4px -1px;
+
+    .current-address {
+      padding: 0.2rem;
+      font-weight: bold;
+      border-bottom: 1px solid var(--lightgrey);
+    }
+
+    .action {
+      border-radius: 6px;
+      padding: 0.2rem;
+      transition: 0.2s;
+
+      &:hover {
+        transition: 0.2s;
+        cursor: pointer;
+        background-color: var(--lightgrey);
+      }
+    }
+
+    .cancel-modal {
+      &:hover {
+        color: var(--red);
+        cursor: pointer;
+        background-color: var(--lightgrey);
+      }
+    }
+  }
+
+  .modal-overlay {
+    display: none;
+    z-index: 8;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--dark);
+
+    .active {
+      display: block;
+      opacity: 0;
+      transition: 0.4s;
+
+      &.active {
+        opacity: 1;
+        transition: 0.4s;
+      }
+    }
+  }
+
+  .form-modal {
+    z-index: 10;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: 0.4s;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    width: 300px;
+    padding: 1rem;
+    padding-top: 2rem;
+    background-color: var(--white);
+    box-shadow: rgba(0, 0, 0, 0.3) 0 1px 4px -1px;
+
+    .modal-address {
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    &.active {
+      opacity: 1;
+      transition: 0.4s;
+    }
+
+    .modal-title {
+    }
+
+    .modal-name {
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+    }
+
+    #review-form,
+    #add-form {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+
+      label {
+        font-size: 0.7rem;
+        margin: 0.4rem 0;
+      }
+
+      input {
+        outline: none;
+        width: 100%;
+        border: 1px solid var(--lightgrey);
+      }
+
+      textarea {
+        outline: none;
+        width: 100%;
+        border: 1px solid var(--lightgrey);
+      }
+
+      button {
+        font-size: 0.7rem;
+        width: 100%;
+        background-color: rgba(51, 51, 51, 0.05);
+        border-radius: 8px;
+        border-width: 0;
+        color: #333333;
+        cursor: pointer;
+        display: inline-block;
+        font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica, Arial,
+          sans-serif;
+        font-weight: 500;
+        line-height: 20px;
+        list-style: none;
+        margin: 0;
+        margin-top: 0.6rem;
+        text-align: center;
+        transition: all 200ms;
+        vertical-align: baseline;
+        white-space: nowrap;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        transition: 0.2s;
+        opacity: 0.6;
+
+        &:hover {
+          transition: 0.2s;
+          opacity: 1;
+        }
+      }
+    }
+
+    .close-button {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 0.7rem;
+      background-color: rgba(51, 51, 51, 0.05);
+      border-radius: 8px;
+      border-width: 0;
+      color: #333333;
+      cursor: pointer;
+      display: inline-block;
+      font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica, Arial,
+        sans-serif;
+      font-weight: 500;
+      line-height: 20px;
+      list-style: none;
+      margin: 0;
+      text-align: center;
+      transition: all 200ms;
+      vertical-align: baseline;
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+
+      transition: 0.2s;
+      opacity: 0.6;
+
+      &:hover {
+        transition: 0.2s;
+        opacity: 1;
+      }
+    }
+  }
+}
