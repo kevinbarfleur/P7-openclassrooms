@@ -55,7 +55,7 @@ export const placeTemplate = (place, isContainer = true) => {
 
   if (isContainer) {
     return `
-      <div class="place">
+      <div class="place" data-lat="${place.lat}" data-lng="${place.lng}">
           <div class="label">
             <h5 class="name">${place.restaurantName}</h3>
             <p class="adress">${place.address}</p>

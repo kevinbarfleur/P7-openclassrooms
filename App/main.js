@@ -2,13 +2,17 @@ import "./styles/reset.css";
 import "./styles/main.scss";
 
 import "./handleUI.js";
-import { mapLoader, autocompleteListener } from "./map.js";
+import {
+  mapLoader,
+  autocompleteListener,
+  initMapInstances,
+  newMarker,
+  clearMarkers,
+} from "./map.js";
 import defaultPlaces from "./dictionary/defaultPlaces.json";
 import { placeTemplate } from "./templates";
 import {
-  addNotification,
-  successNotification,
-  sadNotification,
+  notification,
   openReviewModal,
   closeReviewModal,
   littleModal,
@@ -17,80 +21,45 @@ import {
 } from "./services";
 
 const placesContainer = document.getElementById("results");
-const placesInput = document.querySelector(".autocomplete");
 const addAddress = document.querySelector(".add-address");
 export const reviewForm = document.getElementById("review-form");
 export const addForm = document.getElementById("add-form");
 let addReview;
 let selectedEstablishment;
 let pointedAddress, pointedCoordinates;
+let placesItems;
+export let dragMode = false;
 
-let map, autocomplete, geocoder, infowindow;
 const markers = [];
 let dynamicPlaces = defaultPlaces;
-
-const mapOptions = {
-  zoom: 12,
-  center: { lat: 48.8534, lng: 2.3488 },
-};
-
-const placesOptions = {
-  bounds: {
-    north: mapOptions.center.lat + 0.1,
-    south: mapOptions.center.lat - 0.1,
-    east: mapOptions.center.lng + 0.1,
-    west: mapOptions.center.lng - 0.1,
-  },
-  componentRestrictions: false,
-  fields: ["address_components", "geometry", "icon", "name", "photos"],
-  strictBounds: false,
-  types: ["restaurant"],
-};
-
-updateEstablishments();
-
-addReview = document.querySelectorAll(".add-review");
-addReview.forEach((button, index) => {
-  button.addEventListener("click", () => {
-    openReviewModal(dynamicPlaces[index]);
-  });
-});
-
-const closeButtons = document.querySelectorAll(".close-button");
-closeButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    closeReviewModal();
-    closeAddModal();
-  });
-});
 
 addAddress.addEventListener("click", () => {
   openAddModal(pointedAddress);
 });
 
 mapLoader.load().then(() => {
-  autocomplete = new google.maps.places.Autocomplete(placesInput);
-  map = new google.maps.Map(document.getElementById("map"), mapOptions);
-  autocomplete.bindTo("bounds", map);
+  const { autocomplete, map, geocoder /*, infowindow*/ } = initMapInstances();
+  updateEstablishments(map, dynamicPlaces);
 
-  geocoder = new google.maps.Geocoder();
-  infowindow = new google.maps.InfoWindow();
+  addReview = document.querySelectorAll(".add-review");
+  addReview.forEach((button, index) => {
+    button.addEventListener("click", () => {
+      openReviewModal(dynamicPlaces[index]);
+    });
+  });
 
-  const placesItems = document.querySelectorAll(".place");
+  placesItems = document.querySelectorAll(".place");
   placesItems.forEach((place, index) => {
     place.addEventListener("click", () => seeEstablishment(map, place, index));
   });
-
   autocomplete.addListener("place_changed", () =>
     autocompleteListener(map, autocomplete, markers)
   );
-
   reviewForm.addEventListener("submit", (event) => submitReviewForm(event));
-
-  addForm.addEventListener("submit", (event) => submitAddForm(event));
+  addForm.addEventListener("submit", (event) => submitAddForm(event, map));
 
   map.addListener("click", async (event) => {
-    clearMarkers();
+    clearMarkers(markers);
     const results = await littleModal(event, geocoder);
     pointedAddress = results.pointedAddress;
     pointedCoordinates = results.pointedCoordinates;
@@ -105,7 +74,64 @@ mapLoader.load().then(() => {
 
     markers.push(marker);
   });
+
+  map.addListener("drag", () => handleDragListener(map));
 });
+
+/*
+  See place on visible on viewport
+
+  map: map element (Object)
+*/
+const handleDragListener = (map) => {
+  if (!dragMode) return;
+  clearMarkers(markers);
+
+  const northEastLat = map.getBounds().getNorthEast().lat();
+  const northEastLng = map.getBounds().getNorthEast().lng();
+  const southWestLat = map.getBounds().getSouthWest().lat();
+  const southWestLng = map.getBounds().getSouthWest().lng();
+
+  const filteredPlace = dynamicPlaces.filter(
+    (place) =>
+      place.lat < northEastLat &&
+      place.lat > southWestLat &&
+      place.lng < northEastLng &&
+      place.lng > southWestLng
+  );
+
+  addReview.forEach((button, index) => {
+    button.removeEventListener("click", () => {
+      openReviewModal(dynamicPlaces[index]);
+    });
+  });
+
+  updateEstablishments(map, filteredPlace);
+  updateReviewListiner(filteredPlace);
+
+  addReview = document.querySelectorAll(".add-review");
+  addReview.forEach((button, index) => {
+    button.addEventListener("click", () => {
+      openReviewModal(dynamicPlaces[index]);
+    });
+  });
+
+  for (let place of dynamicPlaces) {
+    if (
+      place.lat < northEastLat &&
+      place.lat > southWestLat &&
+      place.lng < northEastLng &&
+      place.lng > southWestLng
+    ) {
+      markers.push(
+        newMarker(map, {
+          lat: place.lat,
+          lng: place.lng,
+        })
+      );
+    }
+  }
+};
 
 /*
   See place on map when selected
@@ -114,11 +140,19 @@ mapLoader.load().then(() => {
   place: place element in DOM (Node)
   index: forEach index, current  place (Number)
 */
-function seeEstablishment(map, place, index) {
-  clearMarkers();
+const seeEstablishment = (map, place, index) => {
+  clearMarkers(markers);
 
-  let currentPlace = dynamicPlaces[index];
-  selectedEstablishment = index;
+  const selectedPlaceIndex = dynamicPlaces.indexOf(
+    dynamicPlaces.filter(
+      (item) =>
+        item.lat === parseFloat(place.getAttribute("data-lat")) &&
+        item.lng === parseFloat(place.getAttribute("data-lng"))
+    )[0]
+  );
+  const selectedPlace = dynamicPlaces[selectedPlaceIndex];
+
+  selectedEstablishment = selectedPlaceIndex;
 
   const allRatings = document.querySelectorAll(".ratings");
   allRatings.forEach((element) => {
@@ -134,28 +168,10 @@ function seeEstablishment(map, place, index) {
   currentRatingElement.style.maxHeight =
     currentRatingElement.scrollHeight + "px";
 
-  const marker = new google.maps.Marker({
-    position: { lat: currentPlace.lat, lng: currentPlace.lng },
-    map,
-    title: place.restaurantName,
-  });
-
-  markers.push(marker);
-
-  map.panTo({
-    lat: currentPlace.lat,
-    lng: currentPlace.lng,
-  });
-}
-
-/*
-  Clear all markers
-*/
-function clearMarkers() {
-  for (let i = 0; i < markers.length; i++) {
-    markers[i].setMap(null);
-  }
-}
+  const coord = { lat: selectedPlace.lat, lng: selectedPlace.lng };
+  markers.push(newMarker(map, coord, place.restaurantName));
+  map.panTo(coord);
+};
 
 /*
   Submit new  review
@@ -163,10 +179,13 @@ function clearMarkers() {
   event: form submet event (Object)
   placesItems: places HTML nodes (node)
 */
-function submitReviewForm(event) {
+const submitReviewForm = (event) => {
   event.preventDefault();
   const placesItems = document.querySelectorAll(".place");
   const currentElement = placesItems[selectedEstablishment];
+
+  // When the template is updated, this function try to update a DOM node he doesnt exist
+  console.log(placesItems, selectedEstablishment);
   const name = event.srcElement[0].value;
   const stars = event.srcElement[1].value;
   const comment = event.srcElement[2].value;
@@ -193,14 +212,14 @@ function submitReviewForm(event) {
   ratingsElement.style.maxHeight = ratingsElement.scrollHeight + "px";
 
   // remove old listener and add new one on all buttons
-  updateReviewListiner();
+  updateReviewListiner(dynamicPlaces);
   closeReviewModal();
 
-  if (stars <= 2) sadNotification();
-  else successNotification();
-}
+  if (stars <= 2) notification("sad");
+  else notification("success");
+};
 
-function submitAddForm(event) {
+const submitAddForm = (event, map) => {
   event.preventDefault();
   const name = event.srcElement[0].value;
 
@@ -214,34 +233,33 @@ function submitAddForm(event) {
 
   dynamicPlaces = [...dynamicPlaces, establishment];
   closeAddModal();
-  updateEstablishments();
-  updateReviewListiner();
-  addNotification();
-}
+  updateEstablishments(map, dynamicPlaces);
+  updateReviewListiner(dynamicPlaces);
+  notification("add");
+};
 
-function updateEstablishments() {
+const updateEstablishments = (map, collection) => {
   placesContainer.innerHTML = "";
-  for (let place of dynamicPlaces) {
+  for (let place of collection) {
     placesContainer.innerHTML += placeTemplate(place);
   }
   const placesItems = document.querySelectorAll(".place");
-  console.log(placesItems);
   placesItems.forEach((place, index) => {
     place.addEventListener("click", () => seeEstablishment(map, place, index));
   });
-}
+};
 
-function updateReviewListiner() {
+const updateReviewListiner = (collection) => {
   // remove old listener and add new one on all buttons
   addReview.forEach((button, index) => {
     button.removeEventListener("click", () => {
-      openReviewModal(dynamicPlaces[index]);
+      openReviewModal(collection[index]);
     });
   });
   addReview = document.querySelectorAll(".add-review");
   addReview.forEach((button, index) => {
     button.addEventListener("click", () => {
-      openReviewModal(dynamicPlaces[index]);
+      openReviewModal(collection[index]);
     });
   });
-}
+};

@@ -14,52 +14,39 @@ const modalAddress = document.querySelector(".modal-address");
 export const littleModalContainer = document.querySelector(".little-modal");
 const currentAdress = document.querySelector(".current-address");
 
-const errorIcon = `
-  <img src="${errorIconURL}" class="notification-icon" alt="error icon">
-`;
+const icon = (url) =>
+  `<img src="${url}" class="notification-icon" alt="${url} icon">`;
 
-const happyIcon = `
-  <img src="${happyIconURL}" class="notification-icon" alt="error icon">
-`;
+export const notification = (type, content) => {
+  let message;
 
-const sadIcon = `
-  <img src="${sadIconURL}" class="notification-icon" alt="error icon">
-`;
-
-export const errorNotification = (name) => {
-  const message = name
-    ? `${errorIcon} <span>No details available for input: "${name}".</span>`
-    : `${errorIcon} <span>Unknown error. Please retry.</span>`;
-
-  noficationContainer.innerHTML = message;
-  noficationContainer.classList.add("active");
-  setTimeout(() => {
-    noficationContainer.classList.remove("active");
-  }, 5000);
-};
-
-export const successNotification = () => {
-  const message = `${happyIcon} <span>Your review has successfully been left, thank you for your participation.</span>`;
-
-  noficationContainer.innerHTML = message;
-  noficationContainer.classList.add("active");
-  setTimeout(() => {
-    noficationContainer.classList.remove("active");
-  }, 5000);
-};
-
-export const addNotification = () => {
-  const message = `${happyIcon} <span>Your establishment has successfully been added, thank you for your participation!</span>`;
-
-  noficationContainer.innerHTML = message;
-  noficationContainer.classList.add("active");
-  setTimeout(() => {
-    noficationContainer.classList.remove("active");
-  }, 5000);
-};
-
-export const sadNotification = () => {
-  const message = `${sadIcon} <span>Your review has successfully been left, thank you for your participation.</span>`;
+  switch (type) {
+    case "error":
+      message = content?.text
+        ? `${icon(errorIconURL)} <span>No details available for input: "${
+            content.text
+          }".</span>`
+        : `${icon(errorIconURL)} <span>Unknown error. Please retry.</span>`;
+      break;
+    case "success":
+      message = `${icon(
+        happyIconURL
+      )} <span>Your review has successfully been left, thank you for your participation.</span>`;
+      break;
+    case "sad":
+      message = `${icon(
+        sadIconURL
+      )} <span>Your review has successfully been left, thank you for your participation.</span>`;
+      break;
+    case "add":
+      message = `${icon(
+        happyIconURL
+      )} <span>Your establishment has successfully been added, thank you for your participation!</span>`;
+      console.log(message);
+      break;
+    default:
+      break;
+  }
 
   noficationContainer.innerHTML = message;
   noficationContainer.classList.add("active");
