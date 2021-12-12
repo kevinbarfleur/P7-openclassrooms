@@ -4,8 +4,6 @@
 
 Repository : https://github.com/kevinbarfleur/P7-openclassrooms
 
-### Development
-
 ## Required
 
 You need a google map API key for this project to work.
@@ -16,6 +14,8 @@ Once you have your key, complete the `.env` file as follows:
 ```bash
 VITE_GOOGLE_API_KEY=yourKey
 ```
+
+### Development
 
 Install all dependencies
 
