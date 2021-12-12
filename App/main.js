@@ -1,3 +1,11 @@
+// TODO Editer un etablissement déjà enregistré
+// TODO Ajout du filtre
+// TODO mettre en evidence la moyenne
+// TODO Streeview
+// TODO 1 etoile mini ?
+// TODO Explorer pour ne pas rerendre toute la liste mais uniquement la data mise à jour
+// TODO Faire attention aux noms des variables (meme nom)
+
 import "./styles/reset.css";
 import "./styles/main.scss";
 
@@ -28,7 +36,7 @@ let addReview;
 let selectedEstablishment;
 let pointedAddress, pointedCoordinates;
 let placesItems;
-export let dragMode = false;
+export let dragMode = true; // True by default
 
 const markers = [];
 let dynamicPlaces = defaultPlaces;
@@ -37,46 +45,50 @@ addAddress.addEventListener("click", () => {
   openAddModal(pointedAddress);
 });
 
-mapLoader.load().then(() => {
-  const { autocomplete, map, geocoder /*, infowindow*/ } = initMapInstances();
-  updateEstablishments(map, dynamicPlaces);
+function init(coords) {
+  mapLoader.load().then(async () => {
+    const { autocomplete, map, geocoder } = initMapInstances(coords);
+    updateEstablishments(map, dynamicPlaces);
 
-  addReview = document.querySelectorAll(".add-review");
-  addReview.forEach((button, index) => {
-    button.addEventListener("click", () => {
-      openReviewModal(dynamicPlaces[index]);
-    });
-  });
-
-  placesItems = document.querySelectorAll(".place");
-  placesItems.forEach((place, index) => {
-    place.addEventListener("click", () => seeEstablishment(map, place, index));
-  });
-  autocomplete.addListener("place_changed", () =>
-    autocompleteListener(map, autocomplete, markers)
-  );
-  reviewForm.addEventListener("submit", (event) => submitReviewForm(event));
-  addForm.addEventListener("submit", (event) => submitAddForm(event, map));
-
-  map.addListener("click", async (event) => {
-    clearMarkers(markers);
-    const results = await littleModal(event, geocoder);
-    pointedAddress = results.pointedAddress;
-    pointedCoordinates = results.pointedCoordinates;
-
-    const marker = new google.maps.Marker({
-      position: {
-        lat: event.latLng.lat(),
-        lng: event.latLng.lng(),
-      },
-      map,
+    addReview = document.querySelectorAll(".add-review");
+    addReview.forEach((button, index) => {
+      button.addEventListener("click", () => {
+        openReviewModal(dynamicPlaces[index]);
+      });
     });
 
-    markers.push(marker);
-  });
+    placesItems = document.querySelectorAll(".place");
+    placesItems.forEach((place, index) => {
+      place.addEventListener("click", () =>
+        seeEstablishment(map, place, index)
+      );
+    });
+    autocomplete.addListener("place_changed", () =>
+      autocompleteListener(map, autocomplete, markers)
+    );
+    reviewForm.addEventListener("submit", (event) => submitReviewForm(event));
+    addForm.addEventListener("submit", (event) => submitAddForm(event, map));
 
-  map.addListener("drag", () => handleDragListener(map));
-});
+    map.addListener("click", async (event) => {
+      clearMarkers(markers);
+      const results = await littleModal(event, geocoder);
+      pointedAddress = results.pointedAddress;
+      pointedCoordinates = results.pointedCoordinates;
+
+      const marker = new google.maps.Marker({
+        position: {
+          lat: event.latLng.lat(),
+          lng: event.latLng.lng(),
+        },
+        map,
+      });
+
+      markers.push(marker);
+    });
+
+    map.addListener("drag", () => handleDragListener(map));
+  });
+}
 
 /*
   See place on visible on viewport
@@ -181,7 +193,7 @@ const seeEstablishment = (map, place, index) => {
 */
 const submitReviewForm = (event) => {
   event.preventDefault();
-  const placesItems = document.querySelectorAll(".place");
+  placesItems = document.querySelectorAll(".place");
   const currentElement = placesItems[selectedEstablishment];
 
   // When the template is updated, this function try to update a DOM node he doesnt exist
@@ -243,7 +255,7 @@ const updateEstablishments = (map, collection) => {
   for (let place of collection) {
     placesContainer.innerHTML += placeTemplate(place);
   }
-  const placesItems = document.querySelectorAll(".place");
+  placesItems = document.querySelectorAll(".place");
   placesItems.forEach((place, index) => {
     place.addEventListener("click", () => seeEstablishment(map, place, index));
   });
@@ -263,3 +275,14 @@ const updateReviewListiner = (collection) => {
     });
   });
 };
+
+// Initialize map
+navigator.geolocation.getCurrentPosition(
+  async (data) => {
+    init(await { lat: data.coords.latitude, lng: data.coords.longitude });
+  },
+  (err) => {
+    console.log(err);
+    init({ lat: 48.8534, lng: 2.3488 });
+  }
+);

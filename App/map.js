@@ -1,8 +1,10 @@
 import { Loader } from "@googlemaps/js-api-loader";
 import { notification } from "./services";
+const streetViewImg = document.querySelector(".modal-street-view");
 
+const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
 export const mapLoader = new Loader({
-  apiKey: "AIzaSyCtcuLlu2_7aP1ZCUI6kAVZY8K4KMJ-BJA",
+  apiKey,
   version: "weekly",
   libraries: ["places"],
 });
@@ -10,11 +12,11 @@ export const mapLoader = new Loader({
 /*
 Init all related Google map instance & return them
 */
-export const initMapInstances = () => {
+export const initMapInstances = (coords) => {
   const placesInput = document.querySelector(".autocomplete");
   const mapOptions = {
     zoom: 12,
-    center: { lat: 48.8534, lng: 2.3488 },
+    center: coords,
   };
 
   const autocomplete = new google.maps.places.Autocomplete(placesInput);
@@ -64,6 +66,22 @@ export const geocodeLatLng = async (geocoder, event) => {
     lat: event.latLng.lat(),
     lng: event.latLng.lng(),
   };
+
+  return await geocoder.geocode({ location: latlng }).then((response) => {
+    return response.results[0].formatted_address;
+  });
+};
+
+/*
+Get street view image
+
+geocoder: geocoder element (Object)
+event: click event (Object)
+*/
+export const getStreetView = async (coords) => {
+  const url = `https://maps.googleapis.com/maps/api/streetview?size=400x400&location=47.5763831,-122.4211769
+  &fov=80&heading=70&pitch=0
+  &key=${apiKey}`;
 
   return await geocoder.geocode({ location: latlng }).then((response) => {
     return response.results[0].formatted_address;

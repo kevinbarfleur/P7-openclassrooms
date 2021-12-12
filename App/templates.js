@@ -49,13 +49,15 @@ export const placeTemplate = (place, isContainer = true) => {
     }
   } else {
     ratings = `<div>
-      <p class="comment">No comments</p>
+      <p class="comment">Aucun commentaire</p>
     </div>`;
   }
 
   if (isContainer) {
     return `
-      <div class="place" data-lat="${place.lat}" data-lng="${place.lng}">
+      <div class="place" data-lat="${place.lat}" data-lng="${
+      place.lng
+    }" data-id="${place.name + place.lat + place.lng}">
           <div class="label">
             <h5 class="name">${place.restaurantName}</h3>
             <p class="adress">${place.address}</p>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr" xml:lang="fr" xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <title>Restaurant Reviews</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
@@ -10,7 +10,7 @@
       <div id="places">
         <div class="toggle-places-container">
           <input id="toggle-places" type="checkbox" class="toggle-places" />
-          <label for="toggle-places">Use Google places</label>
+          <label for="toggle-places">Utiliser Google places</label>
         </div>
 
         <div class="autocomplete-container hidden">
@@ -21,12 +21,12 @@
 
       <div class="modal-overlay">
         <div class="review-modal form-modal">
-          <button class="close-button">Close</button>
+          <button class="close-button">Fermer</button>
 
-          <h3 class="modal-title">Add review</h3>
+          <h3 class="modal-title">Ajouter un avis</h3>
           <h3 class="modal-name"></h3>
           <form id="review-form">
-            <label for="">Full Name:</label>
+            <label for="">Nom complet :</label>
             <input type="text" id="review-name" class="name-input" required />
             <input
               type="range"
@@ -36,7 +36,7 @@
               class="stars-input"
               required
             />
-            <label for="">Comment:</label>
+            <label for="">Commentaire :</label>
             <textarea
               required
               name="review"
@@ -45,23 +45,24 @@
               cols="30"
               rows="10"
             ></textarea>
-            <button type="submit">Submit review</button>
+            <button type="submit">Valider</button>
           </form>
         </div>
         <div class="add-modal form-modal">
-          <button class="close-button">Close</button>
+          <button class="close-button">Fermer</button>
 
-          <h3 class="modal-title">Add an establishment</h3>
+          <h3 class="modal-title">Ajouter une adresse</h3>
           <h3 class="modal-address"></h3>
+          <img class="modal-street-view" src="" alt="" />
           <form id="add-form">
-            <label for="">Name:</label>
+            <label for="">Nom :</label>
             <input
               type="text"
               id="establishment-name"
               class="name-input"
               required
             />
-            <button type="submit">Submit establishment</button>
+            <button type="submit">Valider</button>
           </form>
         </div>
       </div>
@@ -69,8 +70,8 @@
       <div class="notification"></div>
       <div class="little-modal">
         <div class="current-address"></div>
-        <div class="action add-address">+ Add an address</div>
-        <div class="action cancel-modal">Cancel</div>
+        <div class="action add-address">+ Ajouter l'adresse</div>
+        <div class="action cancel-modal">Anuler</div>
       </div>
     </div>
 
