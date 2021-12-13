@@ -16,6 +16,7 @@ import {
   initMapInstances,
   newMarker,
   clearMarkers,
+  setStreetView,
 } from "./map.js";
 import defaultPlaces from "./dictionary/defaultPlaces.json";
 import { placeTemplate } from "./templates";
@@ -242,6 +243,8 @@ const submitAddForm = (event, map) => {
     lng: pointedCoordinates.lng,
     ratings: [],
   };
+
+  setStreetView(lat, lng);
 
   dynamicPlaces = [...dynamicPlaces, establishment];
   closeAddModal();

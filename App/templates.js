@@ -64,7 +64,7 @@ export const placeTemplate = (place, isContainer = true) => {
           </div>
           <div class="ratings hidden">
             ${ratings}
-            <button class="add-review">+ Add review</button>
+            <button class="add-review">+ Ajouter avis</button>
           </div>
       </div>
   `;
@@ -76,7 +76,7 @@ export const placeTemplate = (place, isContainer = true) => {
           </div>
           <div class="ratings hidden">
             ${ratings}
-            <button class="add-review">Add review +</button>
+            <button class="add-review">Ajouter avis +</button>
           </div>
   `;
   }

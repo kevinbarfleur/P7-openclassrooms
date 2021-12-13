@@ -67,6 +67,9 @@ export const geocodeLatLng = async (geocoder, event) => {
     lng: event.latLng.lng(),
   };
 
+  // Set street view image in popup
+  setStreetView(event.latLng.lat(), event.latLng.lng());
+
   return await geocoder.geocode({ location: latlng }).then((response) => {
     return response.results[0].formatted_address;
   });
@@ -75,17 +78,13 @@ export const geocodeLatLng = async (geocoder, event) => {
 /*
 Get street view image
 
-geocoder: geocoder element (Object)
-event: click event (Object)
+lat: latitude (String)
+lng: longitude (String)
 */
-export const getStreetView = async (coords) => {
-  const url = `https://maps.googleapis.com/maps/api/streetview?size=400x400&location=47.5763831,-122.4211769
+export const setStreetView = async (lat, lng) => {
+  streetViewImg.src = `https://maps.googleapis.com/maps/api/streetview?size=400x400&location=${lat},${lng}
   &fov=80&heading=70&pitch=0
   &key=${apiKey}`;
-
-  return await geocoder.geocode({ location: latlng }).then((response) => {
-    return response.results[0].formatted_address;
-  });
 };
 
 /*
