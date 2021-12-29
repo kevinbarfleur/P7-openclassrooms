@@ -1,3 +1,5 @@
+// @import url(./radioStars.css);
+
 @font-face {
   font-family: system;
   font-style: normal;
@@ -74,6 +76,20 @@
         display: none;
       }
     }
+
+    .filter-container {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      margin: 1rem 1rem 0 1rem;
+      width: calc(100% - 2rem);
+      font-size: 0.8rem;
+
+      .filter-input {
+        margin-left: 0.5rem;
+      }
+    }
+
     .place {
       padding: 0.4rem 0.8rem;
       margin: 0.4rem;
@@ -86,6 +102,48 @@
         background-color: var(--lightgrey);
         transition: 0.2s;
         cursor: pointer;
+      }
+
+      .label {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+
+        .stars {
+          margin: 0.1rem 0.2rem;
+          z-index: 2;
+          position: relative;
+          display: flex;
+          flex-direction: row;
+          justify-content: flex-start;
+          align-items: center;
+          width: fit-content;
+          overflow: hidden;
+
+          .star {
+            z-index: 3;
+            width: 12px;
+            height: 12px;
+            background-color: var(--gold);
+            clip-path: polygon(
+              50% 0%,
+              61% 35%,
+              98% 35%,
+              68% 57%,
+              79% 91%,
+              50% 70%,
+              21% 91%,
+              32% 57%,
+              2% 35%,
+              39% 35%
+            );
+          }
+        }
+
+        .average {
+          font-size: 0.8rem;
+        }
       }
 
       opacity: 1;
@@ -107,6 +165,11 @@
         max-height: 0;
         overflow: hidden;
         transition: 0.4s;
+
+        .street-view-list {
+          margin: 0.8rem 0;
+          border-radius: 4px;
+        }
 
         .rating-container {
           display: flex;
@@ -205,6 +268,7 @@
   }
 
   .notification {
+    box-shadow: rgba(0, 0, 0, 0.3) 0 1px 4px -1px;
     transform: translateX(-150%);
     opacity: 0;
     position: absolute;
@@ -231,6 +295,60 @@
       width: 25px;
       height: 25px;
       margin-right: 0.4rem;
+    }
+  }
+
+  .fetching-notification {
+    font-size: 0.8rem;
+    box-shadow: rgba(0, 0, 0, 0.3) 0 1px 4px -1px;
+    min-width: 300px;
+    min-height: 50px;
+    opacity: 0;
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-150%);
+    padding: 0.4rem 0.8rem;
+    margin: 0.4rem;
+    border-radius: 0.2rem;
+    background-color: var(--white);
+    transition: 0.4s;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    &.active {
+      transition: 0.4s;
+      transform: translateX(-50%) translateY(0%);
+      opacity: 1;
+    }
+
+    .notification-icon {
+      width: 25px;
+      height: 25px;
+      margin-right: 0.4rem;
+    }
+
+    .loading-container {
+      overflow: hidden;
+      position: relative;
+      margin: 0.5rem 0;
+      width: 90%;
+      height: 10px;
+      border: 1px solid #9bc2f3;
+      border-radius: 2px;
+
+      .loading-content {
+        transition: 1.8s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+        position: absolute;
+        transform: translate3d(-100%, 0, 0);
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #0074ff;
+      }
     }
   }
 
@@ -320,6 +438,11 @@
     }
 
     .modal-title {
+    }
+
+    .modal-street-view {
+      margin: 0.8rem 0;
+      border-radius: 4px;
     }
 
     .modal-name {

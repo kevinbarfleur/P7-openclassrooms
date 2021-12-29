@@ -1,10 +1,5 @@
 // TODO Editer un etablissement déjà enregistré
-// TODO Ajout du filtre
-// TODO mettre en evidence la moyenne
-// TODO Streeview
-// TODO 1 etoile mini ?
 // TODO Explorer pour ne pas rerendre toute la liste mais uniquement la data mise à jour
-// TODO Faire attention aux noms des variables (meme nom)
 
 import "./styles/reset.css";
 import "./styles/main.scss";
@@ -17,6 +12,7 @@ import {
   newMarker,
   clearMarkers,
   setStreetView,
+  getPlaceDetails,
 } from "./map.js";
 import defaultPlaces from "./dictionary/defaultPlaces.json";
 import { placeTemplate } from "./templates";
@@ -27,10 +23,13 @@ import {
   littleModal,
   openAddModal,
   closeAddModal,
+  fetchingNotification,
 } from "./services";
 
 const placesContainer = document.getElementById("results");
 const addAddress = document.querySelector(".add-address");
+const filterInput = document.querySelector(".filter-input");
+const placesCheckbox = document.querySelector(".toggle-places");
 export const reviewForm = document.getElementById("review-form");
 export const addForm = document.getElementById("add-form");
 let addReview;
@@ -41,17 +40,21 @@ export let dragMode = true; // True by default
 
 const markers = [];
 let dynamicPlaces = defaultPlaces;
+let nearbyPlacesData = [];
 
 addAddress.addEventListener("click", () => {
   openAddModal(pointedAddress);
 });
 
-function init(coords) {
+function init(coords, zoom) {
   mapLoader.load().then(async () => {
-    const { autocomplete, map, geocoder } = initMapInstances(coords);
-    updateEstablishments(map, dynamicPlaces);
+    const { autocomplete, map, geocoder, serviceInstance } = initMapInstances(
+      coords,
+      zoom
+    );
+    await updateEstablishments(map, dynamicPlaces);
 
-    addReview = document.querySelectorAll(".add-review");
+    addReview = await document.querySelectorAll(".add-review");
     addReview.forEach((button, index) => {
       button.addEventListener("click", () => {
         openReviewModal(dynamicPlaces[index]);
@@ -67,8 +70,27 @@ function init(coords) {
     autocomplete.addListener("place_changed", () =>
       autocompleteListener(map, autocomplete, markers)
     );
-    reviewForm.addEventListener("submit", (event) => submitReviewForm(event));
+    reviewForm.addEventListener(
+      "submit",
+      async (event) => await submitReviewForm(event)
+    );
     addForm.addEventListener("submit", (event) => submitAddForm(event, map));
+    placesCheckbox.addEventListener("click", async (event) => {
+      if (event.target.checked) {
+        searchNearbyPlaces(map, serviceInstance);
+      } else {
+        clearMarkers(markers);
+        await updateEstablishments(map, dynamicPlaces);
+      }
+    });
+
+    filterInput.addEventListener("input", async (event) => {
+      const filteredPlaces = dynamicPlaces.filter(
+        (place) =>
+          parseInt(place.average) <= event.target.value || !place.average
+      );
+      await updateEstablishments(map, filteredPlaces);
+    });
 
     map.addListener("click", async (event) => {
       clearMarkers(markers);
@@ -87,7 +109,7 @@ function init(coords) {
       markers.push(marker);
     });
 
-    map.addListener("drag", () => handleDragListener(map));
+    map.addListener("dragend", () => handleDragListener(map, serviceInstance));
   });
 }
 
@@ -96,9 +118,90 @@ function init(coords) {
 
   map: map element (Object)
 */
-const handleDragListener = (map) => {
-  if (!dragMode) return;
+const searchNearbyPlaces = (map, serviceInstance) => {
+  fetchingNotification("open");
+  fetchingNotification("progress");
+
+  const placeDetailsCallback = (place, status) => {
+    if (status === "OK") {
+      return place;
+    }
+  };
+
+  const nearbySearchCallback = (results, status, pagination) => {
+    if (results) {
+      for (let result of results) {
+        nearbyPlacesData.push(result);
+      }
+      nearbyPlacesData = nearbyPlacesData.map(async (place) => {
+        if (!place) return;
+
+        // if (place.place_id) {
+        //   serviceInstance.getDetails(
+        //     {
+        //       placeId: place.place_id,
+        //       fields: ["name", "rating", "formatted_phone_number", "reviews"],
+        //     },
+        //     placeDetailsCallback
+        //   );
+
+        //   console.log("reviews", reviews);
+        // }
+
+        if (place.geometry && place.geometry.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
+          markers.push(newMarker(map, { lat, lng }));
+        } else {
+          return {};
+        }
+
+        return {
+          restaurantName: place.name,
+          address: place.vicinity,
+          lat: place.geometry.location.lat(),
+          lng: place.geometry.location.lng(),
+          ratings: [],
+        };
+      });
+
+      if (pagination && pagination.hasNextPage) {
+        pagination.nextPage();
+      } else {
+        console.log("last page");
+        console.log(results);
+      }
+
+      // for (let place of nearbyPlacesData) {
+      //   const lat = place.geometry.location.lat();
+      //   const lng = place.geometry.location.lng();
+      //   markers.push(newMarker(map, { lat, lng }));
+      // }
+    }
+  };
+
+  const request = {
+    location: map.getCenter(),
+    radius: 5000,
+    type: ["restaurant"],
+  };
+
+  serviceInstance.nearbySearch(request, nearbySearchCallback);
+  return;
+};
+
+/*
+  See place on visible on viewport
+
+  map: map element (Object)
+*/
+const handleDragListener = async (map, serviceInstance) => {
   clearMarkers(markers);
+  const isPlaces = placesCheckbox.checked;
+  if (isPlaces) {
+    searchNearbyPlaces(map, serviceInstance);
+  }
+  if (!dragMode) return;
 
   const northEastLat = map.getBounds().getNorthEast().lat();
   const northEastLng = map.getBounds().getNorthEast().lng();
@@ -119,7 +222,7 @@ const handleDragListener = (map) => {
     });
   });
 
-  updateEstablishments(map, filteredPlace);
+  await updateEstablishments(map, filteredPlace);
   updateReviewListiner(filteredPlace);
 
   addReview = document.querySelectorAll(".add-review");
@@ -192,7 +295,7 @@ const seeEstablishment = (map, place, index) => {
   event: form submet event (Object)
   placesItems: places HTML nodes (node)
 */
-const submitReviewForm = (event) => {
+const submitReviewForm = async (event) => {
   event.preventDefault();
   placesItems = document.querySelectorAll(".place");
   const currentElement = placesItems[selectedEstablishment];
@@ -214,7 +317,7 @@ const submitReviewForm = (event) => {
   ];
 
   // Handle DOM update and animations
-  currentElement.innerHTML = placeTemplate(
+  currentElement.innerHTML = await placeTemplate(
     dynamicPlaces[selectedEstablishment],
     false
   );
@@ -232,7 +335,7 @@ const submitReviewForm = (event) => {
   else notification("success");
 };
 
-const submitAddForm = (event, map) => {
+const submitAddForm = async (event, map) => {
   event.preventDefault();
   const name = event.srcElement[0].value;
 
@@ -248,15 +351,15 @@ const submitAddForm = (event, map) => {
 
   dynamicPlaces = [...dynamicPlaces, establishment];
   closeAddModal();
-  updateEstablishments(map, dynamicPlaces);
+  await updateEstablishments(map, dynamicPlaces);
   updateReviewListiner(dynamicPlaces);
   notification("add");
 };
 
-const updateEstablishments = (map, collection) => {
+const updateEstablishments = async (map, collection) => {
   placesContainer.innerHTML = "";
   for (let place of collection) {
-    placesContainer.innerHTML += placeTemplate(place);
+    placesContainer.innerHTML += await placeTemplate(place);
   }
   placesItems = document.querySelectorAll(".place");
   placesItems.forEach((place, index) => {
@@ -282,10 +385,13 @@ const updateReviewListiner = (collection) => {
 // Initialize map
 navigator.geolocation.getCurrentPosition(
   async (data) => {
-    init(await { lat: data.coords.latitude, lng: data.coords.longitude });
+    init(
+      await { lat: data.coords.latitude, lng: data.coords.longitude },
+      12 /* Zoom */
+    );
   },
   (err) => {
     console.log(err);
-    init({ lat: 48.8534, lng: 2.3488 });
+    init({ lat: 48.8534, lng: 2.3488 }, 12 /* Zoom */);
   }
 );

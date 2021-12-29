@@ -1,3 +1,4 @@
+import axios from "axios";
 import { Loader } from "@googlemaps/js-api-loader";
 import { notification } from "./services";
 const streetViewImg = document.querySelector(".modal-street-view");
@@ -12,10 +13,10 @@ export const mapLoader = new Loader({
 /*
 Init all related Google map instance & return them
 */
-export const initMapInstances = (coords) => {
+export const initMapInstances = (coords, zoom) => {
   const placesInput = document.querySelector(".autocomplete");
   const mapOptions = {
-    zoom: 12,
+    zoom,
     center: coords,
   };
 
@@ -23,12 +24,14 @@ export const initMapInstances = (coords) => {
   const map = new google.maps.Map(document.getElementById("map"), mapOptions);
   const geocoder = new google.maps.Geocoder();
   const infowindow = new google.maps.InfoWindow();
+  const serviceInstance = new google.maps.places.PlacesService(map);
 
   return {
     autocomplete,
     map,
     geocoder,
     infowindow,
+    serviceInstance,
   };
 };
 
@@ -82,9 +85,29 @@ lat: latitude (String)
 lng: longitude (String)
 */
 export const setStreetView = async (lat, lng) => {
-  streetViewImg.src = `https://maps.googleapis.com/maps/api/streetview?size=400x400&location=${lat},${lng}
+  streetViewImg.src = await getStreetView(lat, lng);
+};
+
+/*
+Get street view image
+
+lat: latitude (String)
+lng: longitude (String)
+*/
+export const getStreetView = async (lat, lng) => {
+  return `https://maps.googleapis.com/maps/api/streetview?size=400x200&location=${lat},${lng}
   &fov=80&heading=70&pitch=0
   &key=${apiKey}`;
+};
+
+/*
+Get place details
+
+placeId: place_id (String)
+*/
+export const getPlaceDetails = async (placeId) => {
+  const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${apiKey}`;
+  return await fetch(url).then((response) => response.json());
 };
 
 /*
@@ -111,4 +134,30 @@ export const clearMarkers = (markers) => {
   for (let i = 0; i < markers.length; i++) {
     markers[i].setMap(null);
   }
+};
+
+export const getRadius = (map) => {
+  const bounds = map.getBounds();
+
+  const center = bounds.getCenter();
+  const ne = bounds.getNorthEast();
+
+  // r = radius of the earth in statute miles
+  const r = 3963.0;
+
+  // Convert lat or lng from decimal degrees into radians (divide by 57.2958)
+  const lat1 = center.lat() / 57.2958;
+  const lon1 = center.lng() / 57.2958;
+  const lat2 = ne.lat() / 57.2958;
+  const lon2 = ne.lng() / 57.2958;
+
+  // distance = circle radius from center to Northeast corner of bounds
+  var dis =
+    r *
+    Math.acos(
+      Math.sin(lat1) * Math.sin(lat2) +
+        Math.cos(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1)
+    );
+
+  return dis;
 };

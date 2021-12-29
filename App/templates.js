@@ -1,4 +1,6 @@
-export const placeTemplate = (place, isContainer = true) => {
+import { getStreetView } from "./map";
+
+export const placeTemplate = async (place, isContainer = true) => {
   const avatarColors = [
     "#E57373",
     "#BA68C8",
@@ -14,7 +16,9 @@ export const placeTemplate = (place, isContainer = true) => {
     "#BDBDBD",
     "#90A4AE",
   ];
-  let ratings = ``;
+
+  const streetView = await getStreetView(place.lat, place.lng);
+  let ratings = `<img class="street-view-list" src='${streetView}'>`;
 
   if (place.ratings && place.ratings.length) {
     for (let rate of place.ratings) {
@@ -48,10 +52,27 @@ export const placeTemplate = (place, isContainer = true) => {
     `;
     }
   } else {
-    ratings = `<div>
+    ratings += `<div>
       <p class="comment">Aucun commentaire</p>
     </div>`;
   }
+
+  const average =
+    place.ratings && place.ratings.length
+      ? place.ratings.reduce(
+          (a, b) => (a.stars + b.stars) / place.ratings.length
+        )
+      : "";
+
+  place.average = typeof average === "object" ? average.stars : average;
+
+  const star =
+    place.ratings && place.ratings.length
+      ? `<div class="stars">
+            <div class="overlay-background"></div>
+            <div class="star"></div>
+          </div>`
+      : "";
 
   if (isContainer) {
     return `
@@ -60,23 +81,27 @@ export const placeTemplate = (place, isContainer = true) => {
     }" data-id="${place.name + place.lat + place.lng}">
           <div class="label">
             <h5 class="name">${place.restaurantName}</h3>
-            <p class="adress">${place.address}</p>
+            ${star}
+            <span class="average">${place.average}</span>
           </div>
+          <p class="adress">${place.address}</p>
           <div class="ratings hidden">
             ${ratings}
-            <button class="add-review">+ Ajouter avis</button>
+            <button class="add-review">+ Ajouter un avis</button>
           </div>
       </div>
   `;
   } else {
     return `
           <div class="label">
-            <h5 class="name">${place.restaurantName}</h3>
-            <p class="adress">${place.address}</p>
+              <h5 class="name">${place.restaurantName}</h3>
+              ${star}
+              <span class="average">${place.average}</span>
           </div>
+          <p class="adress">${place.address}</p>
           <div class="ratings hidden">
             ${ratings}
-            <button class="add-review">Ajouter avis +</button>
+            <button class="add-review">Ajouter un avis +</button>
           </div>
   `;
   }

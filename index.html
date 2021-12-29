@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr" xml:lang="fr" xmlns="http://www.w3.org/1999/xhtml">
+  <meta charset="UTF-8" />
   <head>
     <title>Restaurant Reviews</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
@@ -16,6 +17,18 @@
         <div class="autocomplete-container hidden">
           <input type="text" class="autocomplete" />
         </div>
+
+        <div class="filter-container">
+          <label class="label" for="filter-input">Stars:</label>
+          <input
+            class="filter-input"
+            id="filter-input"
+            type="range"
+            value="5"
+            min="1"
+            max="5"
+          />
+        </div>
         <div id="results"></div>
       </div>
 
@@ -26,14 +39,16 @@
           <h3 class="modal-title">Ajouter un avis</h3>
           <h3 class="modal-name"></h3>
           <form id="review-form">
-            <label for="">Nom complet :</label>
-            <input type="text" id="review-name" class="name-input" required />
+            <label for="name-input">Nom complet :</label>
+            <input type="text" id="name-input" class="name-input" />
+            <label for="stars-input">Note :</label>
             <input
               type="range"
               value="5"
-              min="0"
+              min="1"
               max="5"
               class="stars-input"
+              id="stars-input"
               required
             />
             <label for="">Commentaire :</label>
@@ -68,6 +83,12 @@
       </div>
 
       <div class="notification"></div>
+      <div class="fetching-notification">
+        Récupération des établissements
+        <div class="loading-container">
+          <div class="loading-content"></div>
+        </div>
+      </div>
       <div class="little-modal">
         <div class="current-address"></div>
         <div class="action add-address">+ Ajouter l'adresse</div>

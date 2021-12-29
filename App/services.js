@@ -13,6 +13,10 @@ const reviewModalName = document.querySelector(".modal-name");
 const modalAddress = document.querySelector(".modal-address");
 export const littleModalContainer = document.querySelector(".little-modal");
 const currentAdress = document.querySelector(".current-address");
+const fetchingNotificationContainer = document.querySelector(
+  ".fetching-notification"
+);
+const loadingBar = document.querySelector(".loading-content");
 
 const icon = (url) =>
   `<img src="${url}" class="notification-icon" alt="${url} icon">`;
@@ -116,4 +120,27 @@ export const closeAddModal = () => {
   setTimeout(() => {
     addContainer.style.display = "none";
   }, 400);
+};
+
+export const fetchingNotification = (action) => {
+  if (action === "open") {
+    const loadingElement =
+      fetchingNotificationContainer.querySelector(".loading-content");
+    loadingElement.style.height = "300px";
+    fetchingNotificationContainer.classList.add("active");
+  } else if (action === "close") {
+    fetchingNotificationContainer.classList.remove("active");
+  } else if (action === "progress") {
+    loadingBar.style.transform = "translate3d(-66%, 0, 0)";
+    setTimeout(() => {
+      loadingBar.style.transform = "translate3d(-33%, 0, 0)";
+    }, 2000);
+    setTimeout(() => {
+      loadingBar.style.transform = "translate3d(0%, 0, 0)";
+    }, 4000);
+    setTimeout(() => {
+      fetchingNotification("close");
+      loadingBar.style.transform = "translate3d(-100%, 0, 0)";
+    }, 6000);
+  }
 };
