@@ -20,50 +20,42 @@
 
         <div class="filter-container">
           <label class="label" for="filter-input">Filter by stars:</label>
-          <!-- <input
-            class="filter-input"
-            id="filter-input"
-            type="range"
-            value="5"
-            min="1"
-            max="5"
-          /> -->
           <div class="rating -small">
             <input
               class="filter-stars"
               type="radio"
-              id="star5"
-              name="rating-star"
+              id="filter-star5"
+              name="rating-star-filter"
               value="5"
-            /><label for="star5"></label>
+            /><label for="filter-star5"></label>
             <input
               class="filter-stars"
               type="radio"
-              id="star4"
-              name="rating-star"
+              id="filter-star4"
+              name="rating-star-filter"
               value="4"
-            /><label for="star4"></label>
+            /><label for="filter-star4"></label>
             <input
               class="filter-stars"
               type="radio"
-              id="star3"
-              name="rating-star"
+              id="filter-star3"
+              name="rating-star-filter"
               value="3"
-            /><label for="star3"></label>
+            /><label for="filter-star3"></label>
             <input
               class="filter-stars"
               type="radio"
-              id="star2"
-              name="rating-star"
+              id="filter-star2"
+              name="rating-star-filter"
               value="2"
-            /><label for="star2"></label>
+            /><label for="filter-star2"></label>
             <input
               class="filter-stars"
               type="radio"
-              id="star1"
-              name="rating-star"
+              id="filter-star1"
+              name="rating-star-filter"
               value="1"
-            /><label for="star1"></label>
+            /><label for="filter-star1"></label>
           </div>
         </div>
         <div id="results"></div>
@@ -79,40 +71,37 @@
             <label for="name-input">Nom complet :</label>
             <input type="text" id="name-input" class="name-input" />
             <label for="stars-input">Note :</label>
-            <!-- <input
-              type="range"
-              value="5"
-              min="1"
-              max="5"
-              class="stars-input"
-              id="stars-input"
-            /> -->
             <div class="rating">
               <input
+                class="rating-stars"
                 type="radio"
                 id="star5"
                 name="rating-star"
                 value="5"
               /><label for="star5"></label>
               <input
+                class="rating-stars"
                 type="radio"
                 id="star4"
                 name="rating-star"
                 value="4"
               /><label for="star4"></label>
               <input
+                class="rating-stars"
                 type="radio"
                 id="star3"
                 name="rating-star"
                 value="3"
               /><label for="star3"></label>
               <input
+                class="rating-stars"
                 type="radio"
                 id="star2"
                 name="rating-star"
                 value="2"
               /><label for="star2"></label>
               <input
+                class="rating-stars"
                 type="radio"
                 id="star1"
                 name="rating-star"
@@ -136,7 +125,7 @@
 
           <h3 class="modal-title">Ajouter une adresse</h3>
           <h3 class="modal-address"></h3>
-          <img class="modal-street-view" src="" alt="" />
+          <img class="modal-street-view" />
           <form id="add-form">
             <label for="">Nom :</label>
             <input

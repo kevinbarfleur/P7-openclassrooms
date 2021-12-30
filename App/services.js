@@ -63,7 +63,10 @@ export const openReviewModal = (place) => {
   reviewModalName.innerHTML = `(${place.restaurantName})`;
   const reviewForm = document.getElementById("review-form");
   reviewForm.querySelector(".name-input").value = "";
-  // reviewForm.querySelector(".stars-input").value = "";
+
+  const ratingStars = document.querySelectorAll(".rating-stars");
+  ratingStars.forEach((star) => (star.checked = false));
+
   reviewForm.querySelector(".comment-input").value = "";
 
   modalOverlay.style.display = "block";

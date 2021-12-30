@@ -84,7 +84,7 @@ export const placeTemplate = async (place, isContainer = true) => {
           <div class="label">
             <h5 class="name">${place.restaurantName}</h3>
             ${star}
-            <span class="average">${place.average}</span>
+            <span class="average">${parseFloat(place.average).toFixed(1)}</span>
           </div>
           <p class="adress">${place.address}</p>
           <div class="ratings hidden">
@@ -98,7 +98,9 @@ export const placeTemplate = async (place, isContainer = true) => {
           <div class="label">
               <h5 class="name">${place.restaurantName}</h3>
               ${star}
-              <span class="average">${place.average}</span>
+              <span class="average">${parseFloat(place.average).toFixed(
+                1
+              )}</span>
           </div>
           <p class="adress">${place.address}</p>
           <div class="ratings hidden">

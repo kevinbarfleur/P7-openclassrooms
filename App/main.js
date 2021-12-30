@@ -30,7 +30,6 @@ import {
 
 const placesContainer = document.getElementById("results");
 const addAddress = document.querySelector(".add-address");
-const filterInput = document.querySelector(".filter-input");
 const filterStars = document.querySelectorAll(".filter-stars");
 const placesCheckbox = document.querySelector(".toggle-places");
 export const reviewForm = document.getElementById("review-form");
@@ -46,6 +45,7 @@ const markers = [];
 let dynamicPlaces = defaultPlaces;
 let nearbyPlaces = [],
   tempPlaces = [];
+let selectedFilter = 5;
 
 addAddress.addEventListener("click", () => {
   openAddModal(pointedAddress);
@@ -93,6 +93,8 @@ function init(coords, zoom) {
         dynamicPlaces = tempPlaces;
         await updateEstablishments(map, dynamicPlaces);
       }
+
+      filterStars.forEach((star) => (star.checked = false));
     });
 
     // filterInput.addEventListener("input", async (event) => {
@@ -105,8 +107,9 @@ function init(coords, zoom) {
 
     filterStars.forEach(async (star, index) => {
       star.addEventListener("click", async () => {
+        selectedFilter = 5 - index;
         const filteredPlaces = dynamicPlaces.filter(
-          (place) => parseInt(place.average) <= 5 - index || !place.average
+          (place) => parseFloat(place.average) <= 5 - index || !place.average
         );
         await updateEstablishments(map, filteredPlaces);
       });
@@ -170,6 +173,7 @@ const searchNearbyPlaces = async (map, serviceInstance) => {
   };
 
   const nearbySearchCallback = async (results, status, pagination) => {
+    console.log(pagination);
     if (results) {
       for (let result of results) {
         nearbyPlaces.push(result);
@@ -347,7 +351,7 @@ const submitReviewForm = async (event) => {
     ...dynamicPlaces[selectedEstablishment].ratings,
     {
       name,
-      stars,
+      stars: parseFloat(stars),
       comment,
     },
   ];
@@ -362,6 +366,12 @@ const submitReviewForm = async (event) => {
   ratingsElement.classList.remove("hidden");
   ratingsElement.style.transition = "0s";
   ratingsElement.style.maxHeight = ratingsElement.scrollHeight + "px";
+
+  // Filter with new stars
+  const filteredPlaces = dynamicPlaces.filter(
+    (place) => parseFloat(place.average) <= selectedFilter || !place.average
+  );
+  await updateEstablishments(map, filteredPlaces);
 
   // remove old listener and add new one on all buttons
   updateReviewListiner(dynamicPlaces);
