@@ -116,11 +116,12 @@ map: map element (Object)
 coord: new marker coordinate (Object)
 name: new marker name (String)
 */
-export const newMarker = (map, coord, name = "") => {
+export const newMarker = (map, coords, name = "", icon = "") => {
   return new google.maps.Marker({
-    position: { lat: coord.lat, lng: coord.lng },
+    position: { lat: coords.lat, lng: coords.lng },
     map,
     title: name,
+    icon,
   });
 };
 

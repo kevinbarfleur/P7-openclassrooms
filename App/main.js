@@ -57,6 +57,18 @@ function init(coords, zoom) {
       coords,
       zoom
     );
+    markers.push(
+      newMarker(
+        map,
+        {
+          lat: coords.lat,
+          lng: coords.lng,
+        },
+        "Me",
+        "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+      )
+    );
+
     await updateEstablishments(map, dynamicPlaces);
 
     addReview = await document.querySelectorAll(".add-review");
@@ -96,14 +108,6 @@ function init(coords, zoom) {
 
       filterStars.forEach((star) => (star.checked = false));
     });
-
-    // filterInput.addEventListener("input", async (event) => {
-    //   const filteredPlaces = dynamicPlaces.filter(
-    //     (place) =>
-    //       parseInt(place.average) <= event.target.value || !place.average
-    //   );
-    //   await updateEstablishments(map, filteredPlaces);
-    // });
 
     filterStars.forEach(async (star, index) => {
       star.addEventListener("click", async () => {
@@ -219,7 +223,7 @@ const searchNearbyPlaces = async (map, serviceInstance) => {
 
   const request = {
     location: map.getCenter(),
-    radius: 50000,
+    radius: 10000,
     type: ["restaurant"],
   };
 
