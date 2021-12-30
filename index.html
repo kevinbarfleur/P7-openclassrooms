@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr" xml:lang="fr" xmlns="http://www.w3.org/1999/xhtml">
-  <meta charset="UTF-8" />
   <head>
+    <meta charset="UTF-8" />
     <title>Restaurant Reviews</title>
     <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
   </head>
@@ -19,15 +19,52 @@
         </div>
 
         <div class="filter-container">
-          <label class="label" for="filter-input">Stars:</label>
-          <input
+          <label class="label" for="filter-input">Filter by stars:</label>
+          <!-- <input
             class="filter-input"
             id="filter-input"
             type="range"
             value="5"
             min="1"
             max="5"
-          />
+          /> -->
+          <div class="rating -small">
+            <input
+              class="filter-stars"
+              type="radio"
+              id="star5"
+              name="rating-star"
+              value="5"
+            /><label for="star5"></label>
+            <input
+              class="filter-stars"
+              type="radio"
+              id="star4"
+              name="rating-star"
+              value="4"
+            /><label for="star4"></label>
+            <input
+              class="filter-stars"
+              type="radio"
+              id="star3"
+              name="rating-star"
+              value="3"
+            /><label for="star3"></label>
+            <input
+              class="filter-stars"
+              type="radio"
+              id="star2"
+              name="rating-star"
+              value="2"
+            /><label for="star2"></label>
+            <input
+              class="filter-stars"
+              type="radio"
+              id="star1"
+              name="rating-star"
+              value="1"
+            /><label for="star1"></label>
+          </div>
         </div>
         <div id="results"></div>
       </div>
@@ -42,15 +79,46 @@
             <label for="name-input">Nom complet :</label>
             <input type="text" id="name-input" class="name-input" />
             <label for="stars-input">Note :</label>
-            <input
+            <!-- <input
               type="range"
               value="5"
               min="1"
               max="5"
               class="stars-input"
               id="stars-input"
-              required
-            />
+            /> -->
+            <div class="rating">
+              <input
+                type="radio"
+                id="star5"
+                name="rating-star"
+                value="5"
+              /><label for="star5"></label>
+              <input
+                type="radio"
+                id="star4"
+                name="rating-star"
+                value="4"
+              /><label for="star4"></label>
+              <input
+                type="radio"
+                id="star3"
+                name="rating-star"
+                value="3"
+              /><label for="star3"></label>
+              <input
+                type="radio"
+                id="star2"
+                name="rating-star"
+                value="2"
+              /><label for="star2"></label>
+              <input
+                type="radio"
+                id="star1"
+                name="rating-star"
+                value="1"
+              /><label for="star1"></label>
+            </div>
             <label for="">Commentaire :</label>
             <textarea
               required

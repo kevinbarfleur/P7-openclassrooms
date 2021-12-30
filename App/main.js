@@ -1,5 +1,8 @@
-// TODO Editer un etablissement déjà enregistré
-// TODO Explorer pour ne pas rerendre toute la liste mais uniquement la data mise à jour
+// TODO icone utilisateur (marker)
+// TODO Check validation w3c html/css
+// TODO commentaire dans le main
+// TODO Refactor POO
+// TODO faire attention à refilter à l'ajout d'une nouvelle note
 
 import "./styles/reset.css";
 import "./styles/main.scss";
@@ -12,7 +15,6 @@ import {
   newMarker,
   clearMarkers,
   setStreetView,
-  getPlaceDetails,
 } from "./map.js";
 import defaultPlaces from "./dictionary/defaultPlaces.json";
 import { placeTemplate } from "./templates";
@@ -29,6 +31,7 @@ import {
 const placesContainer = document.getElementById("results");
 const addAddress = document.querySelector(".add-address");
 const filterInput = document.querySelector(".filter-input");
+const filterStars = document.querySelectorAll(".filter-stars");
 const placesCheckbox = document.querySelector(".toggle-places");
 export const reviewForm = document.getElementById("review-form");
 export const addForm = document.getElementById("add-form");
@@ -37,10 +40,12 @@ let selectedEstablishment;
 let pointedAddress, pointedCoordinates;
 let placesItems;
 export let dragMode = true; // True by default
+let dragListener = null;
 
 const markers = [];
 let dynamicPlaces = defaultPlaces;
-let nearbyPlacesData = [];
+let nearbyPlaces = [],
+  tempPlaces = [];
 
 addAddress.addEventListener("click", () => {
   openAddModal(pointedAddress);
@@ -75,21 +80,36 @@ function init(coords, zoom) {
       async (event) => await submitReviewForm(event)
     );
     addForm.addEventListener("submit", (event) => submitAddForm(event, map));
+
     placesCheckbox.addEventListener("click", async (event) => {
       if (event.target.checked) {
+        tempPlaces = dynamicPlaces;
+        dynamicPlaces = [];
+        await updateEstablishments(map, dynamicPlaces);
         searchNearbyPlaces(map, serviceInstance);
       } else {
+        google.maps.event.removeListener(dragListener);
         clearMarkers(markers);
+        dynamicPlaces = tempPlaces;
         await updateEstablishments(map, dynamicPlaces);
       }
     });
 
-    filterInput.addEventListener("input", async (event) => {
-      const filteredPlaces = dynamicPlaces.filter(
-        (place) =>
-          parseInt(place.average) <= event.target.value || !place.average
-      );
-      await updateEstablishments(map, filteredPlaces);
+    // filterInput.addEventListener("input", async (event) => {
+    //   const filteredPlaces = dynamicPlaces.filter(
+    //     (place) =>
+    //       parseInt(place.average) <= event.target.value || !place.average
+    //   );
+    //   await updateEstablishments(map, filteredPlaces);
+    // });
+
+    filterStars.forEach(async (star, index) => {
+      star.addEventListener("click", async () => {
+        const filteredPlaces = dynamicPlaces.filter(
+          (place) => parseInt(place.average) <= 5 - index || !place.average
+        );
+        await updateEstablishments(map, filteredPlaces);
+      });
     });
 
     map.addListener("click", async (event) => {
@@ -109,7 +129,9 @@ function init(coords, zoom) {
       markers.push(marker);
     });
 
-    map.addListener("dragend", () => handleDragListener(map, serviceInstance));
+    dragListener = map.addListener("dragend", () =>
+      handleDragListener(map, serviceInstance)
+    );
   });
 }
 
@@ -118,37 +140,55 @@ function init(coords, zoom) {
 
   map: map element (Object)
 */
-const searchNearbyPlaces = (map, serviceInstance) => {
+const searchNearbyPlaces = async (map, serviceInstance) => {
+  clearMarkers(markers);
   fetchingNotification("open");
   fetchingNotification("progress");
 
-  const placeDetailsCallback = (place, status) => {
-    if (status === "OK") {
-      return place;
-    }
+  let placesDetails = [];
+
+  const placeDetailsCallback = async (place, status) => {
+    const reviews = place
+      ? place.reviews.map((review) => ({
+          name: review.author_name,
+          stars: parseFloat(review.rating),
+          comment: review.text,
+        }))
+      : [];
+
+    if (!place) return;
+    const formaredPlace = {
+      restaurantName: place.name,
+      address: place.vicinity,
+      lat: place.geometry.location.lat(),
+      lng: place.geometry.location.lng(),
+      ratings: reviews,
+    };
+
+    placesDetails.push(formaredPlace);
+    dynamicPlaces = [...dynamicPlaces, ...placesDetails];
   };
 
-  const nearbySearchCallback = (results, status, pagination) => {
+  const nearbySearchCallback = async (results, status, pagination) => {
     if (results) {
       for (let result of results) {
-        nearbyPlacesData.push(result);
+        nearbyPlaces.push(result);
       }
-      nearbyPlacesData = nearbyPlacesData.map(async (place) => {
+
+      nearbyPlaces = nearbyPlaces.map(async (place) => {
         if (!place) return;
 
-        // if (place.place_id) {
-        //   serviceInstance.getDetails(
-        //     {
-        //       placeId: place.place_id,
-        //       fields: ["name", "rating", "formatted_phone_number", "reviews"],
-        //     },
-        //     placeDetailsCallback
-        //   );
+        if (place.place_id) {
+          serviceInstance.getDetails(
+            {
+              placeId: place.place_id,
+              fields: ["name", "reviews", "geometry", "vicinity"],
+            },
+            placeDetailsCallback
+          );
+        }
 
-        //   console.log("reviews", reviews);
-        // }
-
-        if (place.geometry && place.geometry.location) {
+        if (place.place_id && place.geometry && place.geometry.location) {
           const lat = place.geometry.location.lat();
           const lng = place.geometry.location.lng();
           markers.push(newMarker(map, { lat, lng }));
@@ -165,24 +205,17 @@ const searchNearbyPlaces = (map, serviceInstance) => {
         };
       });
 
+      await updateEstablishments(map, dynamicPlaces);
+
       if (pagination && pagination.hasNextPage) {
         pagination.nextPage();
-      } else {
-        console.log("last page");
-        console.log(results);
       }
-
-      // for (let place of nearbyPlacesData) {
-      //   const lat = place.geometry.location.lat();
-      //   const lng = place.geometry.location.lng();
-      //   markers.push(newMarker(map, { lat, lng }));
-      // }
     }
   };
 
   const request = {
     location: map.getCenter(),
-    radius: 5000,
+    radius: 50000,
     type: ["restaurant"],
   };
 
@@ -199,6 +232,8 @@ const handleDragListener = async (map, serviceInstance) => {
   clearMarkers(markers);
   const isPlaces = placesCheckbox.checked;
   if (isPlaces) {
+    dynamicPlaces = [];
+    await updateEstablishments(map, dynamicPlaces);
     searchNearbyPlaces(map, serviceInstance);
   }
   if (!dragMode) return;
@@ -301,10 +336,11 @@ const submitReviewForm = async (event) => {
   const currentElement = placesItems[selectedEstablishment];
 
   // When the template is updated, this function try to update a DOM node he doesnt exist
-  console.log(placesItems, selectedEstablishment);
   const name = event.srcElement[0].value;
-  const stars = event.srcElement[1].value;
-  const comment = event.srcElement[2].value;
+  const stars = Array.from(event.srcElement).find(
+    (input) => input.getAttribute("name") === "rating-star" && input.checked
+  ).value;
+  const comment = event.srcElement[6].value;
 
   // Format new review object
   dynamicPlaces[selectedEstablishment].ratings = [
@@ -347,7 +383,7 @@ const submitAddForm = async (event, map) => {
     ratings: [],
   };
 
-  setStreetView(lat, lng);
+  setStreetView(establishment.lat, establishment.lng);
 
   dynamicPlaces = [...dynamicPlaces, establishment];
   closeAddModal();
@@ -364,6 +400,13 @@ const updateEstablishments = async (map, collection) => {
   placesItems = document.querySelectorAll(".place");
   placesItems.forEach((place, index) => {
     place.addEventListener("click", () => seeEstablishment(map, place, index));
+  });
+
+  addReview = await document.querySelectorAll(".add-review");
+  addReview.forEach((button, index) => {
+    button.addEventListener("click", () => {
+      openReviewModal(dynamicPlaces[index]);
+    });
   });
 };
 

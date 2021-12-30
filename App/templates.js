@@ -38,18 +38,18 @@ export const placeTemplate = async (place, isContainer = true) => {
         avatarColors[Math.floor(Math.random() * avatarColors.length)];
 
       ratings += `
-      <div class="rating-container">
-        <div class="avatar" style="background-color:${color};">${avatarLeters}</div>
-        <div>
-          <h5 class="user-name">${rate.name}</h3>
-          <div class="stars">
-            <div class="overlay-background"></div>
-            ${stars}
+        <div class="rating-container">
+          <div class="avatar" style="background-color:${color};">${avatarLeters}</div>
+          <div>
+            <h5 class="user-name">${rate.name}</h3>
+            <div class="stars">
+              <div class="overlay-background"></div>
+              ${stars}
+            </div>
+            <p class="comment">${rate.comment}</p>
           </div>
-          <p class="comment">${rate.comment}</p>
         </div>
-      </div>
-    `;
+      `;
     }
   } else {
     ratings += `<div>
@@ -57,12 +57,14 @@ export const placeTemplate = async (place, isContainer = true) => {
     </div>`;
   }
 
-  const average =
+  const ratingsHolder =
     place.ratings && place.ratings.length
-      ? place.ratings.reduce(
-          (a, b) => (a.stars + b.stars) / place.ratings.length
-        )
-      : "";
+      ? place.ratings.map((place) => place.stars)
+      : [];
+
+  const average = ratingsHolder.length
+    ? ratingsHolder.reduce((a, b) => a + b, 0) / ratingsHolder.length
+    : "";
 
   place.average = typeof average === "object" ? average.stars : average;
 
