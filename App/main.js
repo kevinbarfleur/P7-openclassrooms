@@ -17,7 +17,7 @@ import {
   fetchingNotification,
 } from "./services";
 
-import Map from "./Map.js";
+import Map from "./Map";
 
 const placesContainer = document.getElementById("results");
 const addAddress = document.querySelector(".add-address");
