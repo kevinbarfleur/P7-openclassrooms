@@ -1,21 +1,10 @@
-// TODO icone utilisateur (marker)
 // TODO Check validation w3c html/css
 // TODO commentaire dans le main
-// TODO Refactor POO
-// TODO faire attention à refilter à l'ajout d'une nouvelle note
 
 import "./styles/reset.css";
 import "./styles/main.scss";
 
 import "./handleUI.js";
-import {
-  mapLoader,
-  autocompleteListener,
-  initMapInstances,
-  newMarker,
-  clearMarkers,
-  setStreetView,
-} from "./map.js";
 import defaultPlaces from "./dictionary/defaultPlaces.json";
 import { placeTemplate } from "./templates";
 import {
@@ -27,6 +16,8 @@ import {
   closeAddModal,
   fetchingNotification,
 } from "./services";
+
+import Map from "./Map.js";
 
 const placesContainer = document.getElementById("results");
 const addAddress = document.querySelector(".add-address");
@@ -41,10 +32,10 @@ let placesItems;
 export let dragMode = true; // True by default
 let dragListener = null;
 
-const markers = [];
-let dynamicPlaces = defaultPlaces;
-let nearbyPlaces = [],
-  tempPlaces = [];
+const key = import.meta.env.VITE_GOOGLE_API_KEY;
+const _map = new Map(key, "weekly", ["places"]);
+
+_map.dynamicPlaces = defaultPlaces;
 let selectedFilter = 5;
 
 addAddress.addEventListener("click", () => {
@@ -52,94 +43,97 @@ addAddress.addEventListener("click", () => {
 });
 
 function init(coords, zoom) {
-  mapLoader.load().then(async () => {
-    const { autocomplete, map, geocoder, serviceInstance } = initMapInstances(
-      coords,
-      zoom
-    );
-    markers.push(
-      newMarker(
-        map,
-        {
-          lat: coords.lat,
-          lng: coords.lng,
-        },
-        "Me",
-        "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
-      )
-    );
+  _map
+    .loader()
+    .load()
+    .then(async () => {
+      const { autocomplete, map, geocoder, serviceInstance } = _map.init(
+        coords,
+        zoom
+      );
+      _map.markers.push(
+        _map.newMarker(
+          map,
+          {
+            lat: coords.lat,
+            lng: coords.lng,
+          },
+          "Me",
+          "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png"
+        )
+      );
 
-    await updateEstablishments(map, dynamicPlaces);
+      await updateEstablishments(map, _map.dynamicPlaces);
 
-    addReview = await document.querySelectorAll(".add-review");
-    addReview.forEach((button, index) => {
-      button.addEventListener("click", () => {
-        openReviewModal(dynamicPlaces[index]);
+      addReview = await document.querySelectorAll(".add-review");
+      addReview.forEach((button, index) => {
+        button.addEventListener("click", () => {
+          openReviewModal(_map.dynamicPlaces[index]);
+        });
       });
-    });
 
-    placesItems = document.querySelectorAll(".place");
-    placesItems.forEach((place, index) => {
-      place.addEventListener("click", () =>
-        seeEstablishment(map, place, index)
+      placesItems = document.querySelectorAll(".place");
+      placesItems.forEach((place, index) => {
+        place.addEventListener("click", () =>
+          seeEstablishment(map, place, index)
+        );
+      });
+      autocomplete.addListener("place_changed", () =>
+        _map.autocompleteListener(map, autocomplete, markers)
+      );
+      reviewForm.addEventListener(
+        "submit",
+        async (event) => await submitReviewForm(event)
+      );
+      addForm.addEventListener("submit", (event) => submitAddForm(event, map));
+
+      placesCheckbox.addEventListener("click", async (event) => {
+        if (event.target.checked) {
+          _map.tempPlaces = _map.dynamicPlaces;
+          _map.dynamicPlaces = [];
+          await updateEstablishments(map, _map.dynamicPlaces);
+          searchNearbyPlaces(map, serviceInstance);
+        } else {
+          google.maps.event.removeListener(dragListener);
+          _map.clearMarkers();
+          _map.dynamicPlaces = _map.tempPlaces;
+          await updateEstablishments(map, _map.dynamicPlaces);
+        }
+
+        filterStars.forEach((star) => (star.checked = false));
+      });
+
+      filterStars.forEach(async (star, index) => {
+        star.addEventListener("click", async () => {
+          selectedFilter = 5 - index;
+          const filteredPlaces = _map.dynamicPlaces.filter(
+            (place) => parseFloat(place.average) <= 5 - index || !place.average
+          );
+          await updateEstablishments(map, filteredPlaces);
+        });
+      });
+
+      map.addListener("click", async (event) => {
+        _map.clearMarkers();
+        const results = await littleModal(event, geocoder);
+        pointedAddress = results.pointedAddress;
+        pointedCoordinates = results.pointedCoordinates;
+
+        const marker = new google.maps.Marker({
+          position: {
+            lat: event.latLng.lat(),
+            lng: event.latLng.lng(),
+          },
+          map,
+        });
+
+        _map.markers.push(marker);
+      });
+
+      dragListener = map.addListener("dragend", () =>
+        handleDragListener(map, serviceInstance)
       );
     });
-    autocomplete.addListener("place_changed", () =>
-      autocompleteListener(map, autocomplete, markers)
-    );
-    reviewForm.addEventListener(
-      "submit",
-      async (event) => await submitReviewForm(event)
-    );
-    addForm.addEventListener("submit", (event) => submitAddForm(event, map));
-
-    placesCheckbox.addEventListener("click", async (event) => {
-      if (event.target.checked) {
-        tempPlaces = dynamicPlaces;
-        dynamicPlaces = [];
-        await updateEstablishments(map, dynamicPlaces);
-        searchNearbyPlaces(map, serviceInstance);
-      } else {
-        google.maps.event.removeListener(dragListener);
-        clearMarkers(markers);
-        dynamicPlaces = tempPlaces;
-        await updateEstablishments(map, dynamicPlaces);
-      }
-
-      filterStars.forEach((star) => (star.checked = false));
-    });
-
-    filterStars.forEach(async (star, index) => {
-      star.addEventListener("click", async () => {
-        selectedFilter = 5 - index;
-        const filteredPlaces = dynamicPlaces.filter(
-          (place) => parseFloat(place.average) <= 5 - index || !place.average
-        );
-        await updateEstablishments(map, filteredPlaces);
-      });
-    });
-
-    map.addListener("click", async (event) => {
-      clearMarkers(markers);
-      const results = await littleModal(event, geocoder);
-      pointedAddress = results.pointedAddress;
-      pointedCoordinates = results.pointedCoordinates;
-
-      const marker = new google.maps.Marker({
-        position: {
-          lat: event.latLng.lat(),
-          lng: event.latLng.lng(),
-        },
-        map,
-      });
-
-      markers.push(marker);
-    });
-
-    dragListener = map.addListener("dragend", () =>
-      handleDragListener(map, serviceInstance)
-    );
-  });
 }
 
 /*
@@ -148,7 +142,7 @@ function init(coords, zoom) {
   map: map element (Object)
 */
 const searchNearbyPlaces = async (map, serviceInstance) => {
-  clearMarkers(markers);
+  _map.clearMarkers();
   fetchingNotification("open");
   fetchingNotification("progress");
 
@@ -173,17 +167,16 @@ const searchNearbyPlaces = async (map, serviceInstance) => {
     };
 
     placesDetails.push(formaredPlace);
-    dynamicPlaces = [...dynamicPlaces, ...placesDetails];
+    _map.dynamicPlaces = [..._map.dynamicPlaces, ...placesDetails];
   };
 
   const nearbySearchCallback = async (results, status, pagination) => {
-    console.log(pagination);
     if (results) {
       for (let result of results) {
-        nearbyPlaces.push(result);
+        _map.nearbyPlaces.push(result);
       }
 
-      nearbyPlaces = nearbyPlaces.map(async (place) => {
+      _map.nearbyPlaces = _map.nearbyPlaces.map(async (place) => {
         if (!place) return;
 
         if (place.place_id) {
@@ -199,7 +192,7 @@ const searchNearbyPlaces = async (map, serviceInstance) => {
         if (place.place_id && place.geometry && place.geometry.location) {
           const lat = place.geometry.location.lat();
           const lng = place.geometry.location.lng();
-          markers.push(newMarker(map, { lat, lng }));
+          _map.markers.push(_map.newMarker(map, { lat, lng }));
         } else {
           return {};
         }
@@ -213,7 +206,7 @@ const searchNearbyPlaces = async (map, serviceInstance) => {
         };
       });
 
-      await updateEstablishments(map, dynamicPlaces);
+      await updateEstablishments(map, _map.dynamicPlaces);
 
       if (pagination && pagination.hasNextPage) {
         pagination.nextPage();
@@ -237,11 +230,11 @@ const searchNearbyPlaces = async (map, serviceInstance) => {
   map: map element (Object)
 */
 const handleDragListener = async (map, serviceInstance) => {
-  clearMarkers(markers);
+  _map.clearMarkers();
   const isPlaces = placesCheckbox.checked;
   if (isPlaces) {
-    dynamicPlaces = [];
-    await updateEstablishments(map, dynamicPlaces);
+    _map.dynamicPlaces = [];
+    await updateEstablishments(map, _map.dynamicPlaces);
     searchNearbyPlaces(map, serviceInstance);
   }
   if (!dragMode) return;
@@ -251,7 +244,7 @@ const handleDragListener = async (map, serviceInstance) => {
   const southWestLat = map.getBounds().getSouthWest().lat();
   const southWestLng = map.getBounds().getSouthWest().lng();
 
-  const filteredPlace = dynamicPlaces.filter(
+  const filteredPlace = _map.dynamicPlaces.filter(
     (place) =>
       place.lat < northEastLat &&
       place.lat > southWestLat &&
@@ -261,7 +254,7 @@ const handleDragListener = async (map, serviceInstance) => {
 
   addReview.forEach((button, index) => {
     button.removeEventListener("click", () => {
-      openReviewModal(dynamicPlaces[index]);
+      openReviewModal(_map.dynamicPlaces[index]);
     });
   });
 
@@ -271,19 +264,19 @@ const handleDragListener = async (map, serviceInstance) => {
   addReview = document.querySelectorAll(".add-review");
   addReview.forEach((button, index) => {
     button.addEventListener("click", () => {
-      openReviewModal(dynamicPlaces[index]);
+      openReviewModal(_map.dynamicPlaces[index]);
     });
   });
 
-  for (let place of dynamicPlaces) {
+  for (let place of _map.dynamicPlaces) {
     if (
       place.lat < northEastLat &&
       place.lat > southWestLat &&
       place.lng < northEastLng &&
       place.lng > southWestLng
     ) {
-      markers.push(
-        newMarker(map, {
+      _map.markers.push(
+        _map.newMarker(map, {
           lat: place.lat,
           lng: place.lng,
         })
@@ -300,16 +293,16 @@ const handleDragListener = async (map, serviceInstance) => {
   index: forEach index, current  place (Number)
 */
 const seeEstablishment = (map, place, index) => {
-  clearMarkers(markers);
+  _map.clearMarkers();
 
-  const selectedPlaceIndex = dynamicPlaces.indexOf(
-    dynamicPlaces.filter(
+  const selectedPlaceIndex = _map.dynamicPlaces.indexOf(
+    _map.dynamicPlaces.filter(
       (item) =>
         item.lat === parseFloat(place.getAttribute("data-lat")) &&
         item.lng === parseFloat(place.getAttribute("data-lng"))
     )[0]
   );
-  const selectedPlace = dynamicPlaces[selectedPlaceIndex];
+  const selectedPlace = _map.dynamicPlaces[selectedPlaceIndex];
 
   selectedEstablishment = selectedPlaceIndex;
 
@@ -328,7 +321,7 @@ const seeEstablishment = (map, place, index) => {
     currentRatingElement.scrollHeight + "px";
 
   const coord = { lat: selectedPlace.lat, lng: selectedPlace.lng };
-  markers.push(newMarker(map, coord, place.restaurantName));
+  _map.markers.push(_map.newMarker(map, coord, place.restaurantName));
   map.panTo(coord);
 };
 
@@ -351,8 +344,8 @@ const submitReviewForm = async (event) => {
   const comment = event.srcElement[6].value;
 
   // Format new review object
-  dynamicPlaces[selectedEstablishment].ratings = [
-    ...dynamicPlaces[selectedEstablishment].ratings,
+  _map.dynamicPlaces[selectedEstablishment].ratings = [
+    ..._map.dynamicPlaces[selectedEstablishment].ratings,
     {
       name,
       stars: parseFloat(stars),
@@ -362,7 +355,7 @@ const submitReviewForm = async (event) => {
 
   // Handle DOM update and animations
   currentElement.innerHTML = await placeTemplate(
-    dynamicPlaces[selectedEstablishment],
+    _map.dynamicPlaces[selectedEstablishment],
     false
   );
 
@@ -372,13 +365,13 @@ const submitReviewForm = async (event) => {
   ratingsElement.style.maxHeight = ratingsElement.scrollHeight + "px";
 
   // Filter with new stars
-  const filteredPlaces = dynamicPlaces.filter(
+  const filteredPlaces = _map.dynamicPlaces.filter(
     (place) => parseFloat(place.average) <= selectedFilter || !place.average
   );
   await updateEstablishments(map, filteredPlaces);
 
   // remove old listener and add new one on all buttons
-  updateReviewListiner(dynamicPlaces);
+  updateReviewListiner(_map.dynamicPlaces);
   closeReviewModal();
 
   if (stars <= 2) notification("sad");
@@ -397,12 +390,12 @@ const submitAddForm = async (event, map) => {
     ratings: [],
   };
 
-  setStreetView(establishment.lat, establishment.lng);
+  _map.setStreetView(establishment.lat, establishment.lng);
 
-  dynamicPlaces = [...dynamicPlaces, establishment];
+  _map.dynamicPlaces = [..._map.dynamicPlaces, establishment];
   closeAddModal();
-  await updateEstablishments(map, dynamicPlaces);
-  updateReviewListiner(dynamicPlaces);
+  await updateEstablishments(map, _map.dynamicPlaces);
+  updateReviewListiner(_map.dynamicPlaces);
   notification("add");
 };
 
@@ -419,7 +412,7 @@ const updateEstablishments = async (map, collection) => {
   addReview = await document.querySelectorAll(".add-review");
   addReview.forEach((button, index) => {
     button.addEventListener("click", () => {
-      openReviewModal(dynamicPlaces[index]);
+      openReviewModal(_map.dynamicPlaces[index]);
     });
   });
 };
