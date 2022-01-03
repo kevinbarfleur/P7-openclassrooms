@@ -1,4 +1,4 @@
-import { getStreetView } from "./map";
+import { getStreetView } from "./map_old";
 
 export const placeTemplate = async (place, isContainer = true) => {
   const avatarColors = [

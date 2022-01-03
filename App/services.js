@@ -2,7 +2,7 @@ import errorIconURL from "./assets/error.svg";
 import happyIconURL from "./assets/emoji-happy.svg";
 import sadIconURL from "./assets/emoji-sad.svg";
 
-import { geocodeLatLng } from "./map";
+import { geocodeLatLng } from "./map_old";
 import { closeLittleModal } from "./handleUI";
 
 const noficationContainer = document.querySelector(".notification");
