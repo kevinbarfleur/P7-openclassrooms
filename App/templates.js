@@ -1,4 +1,4 @@
-import { getStreetView } from "./map_old";
+import { _map } from "./main";
 
 export const placeTemplate = async (place, isContainer = true) => {
   const avatarColors = [
@@ -17,7 +17,7 @@ export const placeTemplate = async (place, isContainer = true) => {
     "#90A4AE",
   ];
 
-  const streetView = await getStreetView(place.lat, place.lng);
+  const streetView = await _map.getStreetView(place.lat, place.lng);
   let ratings = `<img class="street-view-list" src='${streetView}'>`;
 
   if (place.ratings && place.ratings.length) {

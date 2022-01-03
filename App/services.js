@@ -2,7 +2,7 @@ import errorIconURL from "./assets/error.svg";
 import happyIconURL from "./assets/emoji-happy.svg";
 import sadIconURL from "./assets/emoji-sad.svg";
 
-import { geocodeLatLng } from "./map_old";
+import { _map } from "./main";
 import { closeLittleModal } from "./handleUI";
 
 const noficationContainer = document.querySelector(".notification");
@@ -87,7 +87,7 @@ export const closeReviewModal = () => {
 };
 
 export const littleModal = async (event, geocoder) => {
-  const address = await geocodeLatLng(geocoder, event);
+  const address = await _map.geocodeLatLng(geocoder, event);
   currentAdress.innerHTML = address;
   const mousePos = { x: event.domEvent.clientX, y: event.domEvent.clientY };
   littleModalContainer.style.display = "block";

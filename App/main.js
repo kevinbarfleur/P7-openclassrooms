@@ -1,6 +1,10 @@
 // TODO Check validation w3c html/css
 // TODO commentaire dans le main
 
+import Map from "./Map";
+const key = import.meta.env.VITE_GOOGLE_API_KEY;
+export const _map = new Map(key, "weekly", ["places"]);
+
 import "./styles/reset.css";
 import "./styles/main.scss";
 
@@ -17,8 +21,6 @@ import {
   fetchingNotification,
 } from "./services";
 
-import Map from "./Map";
-
 const placesContainer = document.getElementById("results");
 const addAddress = document.querySelector(".add-address");
 const filterStars = document.querySelectorAll(".filter-stars");
@@ -31,9 +33,6 @@ let pointedAddress, pointedCoordinates;
 let placesItems;
 export let dragMode = true; // True by default
 let dragListener = null;
-
-const key = import.meta.env.VITE_GOOGLE_API_KEY;
-const _map = new Map(key, "weekly", ["places"]);
 
 _map.dynamicPlaces = defaultPlaces;
 let selectedFilter = 5;
@@ -78,6 +77,7 @@ function init(coords, zoom) {
           seeEstablishment(map, place, index)
         );
       });
+
       autocomplete.addListener("place_changed", () =>
         _map.autocompleteListener(map, autocomplete, markers)
       );

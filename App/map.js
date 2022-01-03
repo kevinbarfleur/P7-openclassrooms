@@ -107,7 +107,7 @@ export default class Map {
   async getStreetView(lat, lng) {
     return `https://maps.googleapis.com/maps/api/streetview?size=400x200&location=${lat},${lng}
     &fov=80&heading=70&pitch=0
-    &key=${apiKey}`;
+    &key=${this.apiKey}`;
   }
 
   /*
@@ -116,7 +116,7 @@ export default class Map {
     placeId: place_id (String)
  */
   async getPlaceDetails(placeId) {
-    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${apiKey}`;
+    const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&key=${this.apiKey}`;
     return await fetch(url).then((response) => response.json());
   }
 
