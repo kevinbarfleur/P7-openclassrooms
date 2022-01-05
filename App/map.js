@@ -9,6 +9,7 @@ export default class Map {
     this.dynamicPlaces = [];
     this.nearbyPlaces = [];
     this.tempPlaces = [];
+    this.instance = null;
   }
 
   loader() {
@@ -35,6 +36,7 @@ export default class Map {
     const infowindow = new google.maps.InfoWindow();
     const serviceInstance = new google.maps.places.PlacesService(map);
 
+    this.instance = map;
     return {
       autocomplete,
       map,

@@ -22,7 +22,13 @@
     "address": "4 Rue Lamarck, 75018 Paris",
     "lat": 48.8865035,
     "lng": 2.3442197,
-    "ratings": []
+    "ratings": [
+      {
+        "name": "Xavier O'danniel",
+        "stars": 3.5,
+        "comment": "Ok"
+      }
+    ]
   },
   {
     "restaurantName": "Chez Vincent",

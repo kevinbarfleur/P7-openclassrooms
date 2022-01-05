@@ -2,9 +2,6 @@
 // TODO commentaire dans le main
 
 import Map from "./Map";
-const key = import.meta.env.VITE_GOOGLE_API_KEY;
-export const _map = new Map(key, "weekly", ["places"]);
-
 import "./styles/reset.css";
 import "./styles/main.scss";
 
@@ -34,6 +31,8 @@ let placesItems;
 export let dragMode = true; // True by default
 let dragListener = null;
 
+const key = import.meta.env.VITE_GOOGLE_API_KEY;
+export const _map = new Map(key, "weekly", ["places"]);
 _map.dynamicPlaces = defaultPlaces;
 let selectedFilter = 5;
 
@@ -322,7 +321,7 @@ const seeEstablishment = (map, place, index) => {
 
   const coord = { lat: selectedPlace.lat, lng: selectedPlace.lng };
   _map.markers.push(_map.newMarker(map, coord, place.restaurantName));
-  map.panTo(coord);
+  _map.instance.panTo(coord);
 };
 
 /*

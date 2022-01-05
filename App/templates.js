@@ -63,7 +63,8 @@ export const placeTemplate = async (place, isContainer = true) => {
       : [];
 
   const average = ratingsHolder.length
-    ? ratingsHolder.reduce((a, b) => a + b, 0) / ratingsHolder.length
+    ? ratingsHolder.reduce((a, b) => parseFloat(a) + parseFloat(b), 0) /
+      ratingsHolder.length
     : "";
 
   place.average = typeof average === "object" ? average.stars : average;
@@ -84,7 +85,11 @@ export const placeTemplate = async (place, isContainer = true) => {
           <div class="label">
             <h5 class="name">${place.restaurantName}</h3>
             ${star}
-            <span class="average">${parseFloat(place.average).toFixed(1)}</span>
+            <span class="average">${
+              typeof place.average === "number"
+                ? parseFloat(place.average).toFixed(1)
+                : ""
+            }</span>
           </div>
           <p class="adress">${place.address}</p>
           <div class="ratings hidden">
@@ -98,9 +103,11 @@ export const placeTemplate = async (place, isContainer = true) => {
           <div class="label">
               <h5 class="name">${place.restaurantName}</h3>
               ${star}
-              <span class="average">${parseFloat(place.average).toFixed(
-                1
-              )}</span>
+              <span class="average">${
+                typeof place.average === "number"
+                  ? parseFloat(place.average).toFixed(1)
+                  : ""
+              }</span>
           </div>
           <p class="adress">${place.address}</p>
           <div class="ratings hidden">

@@ -16,7 +16,6 @@ const currentAdress = document.querySelector(".current-address");
 const fetchingNotificationContainer = document.querySelector(
   ".fetching-notification"
 );
-const loadingBar = document.querySelector(".loading-content");
 
 const icon = (url) =>
   `<img src="${url}" class="notification-icon" alt="${url} icon">`;
@@ -127,6 +126,13 @@ export const closeAddModal = () => {
 
 export const fetchingNotification = (action) => {
   if (action === "open") {
+    const template = `
+    Récupération des établissements
+    <div class="loading-container">
+      <div class="loading-content"></div>
+    </div>
+    `;
+    fetchingNotificationContainer.innerHTML = template;
     const loadingElement =
       fetchingNotificationContainer.querySelector(".loading-content");
     loadingElement.style.height = "300px";
@@ -134,7 +140,8 @@ export const fetchingNotification = (action) => {
   } else if (action === "close") {
     fetchingNotificationContainer.classList.remove("active");
   } else if (action === "progress") {
-    loadingBar.style.transform = "translate3d(-66%, 0, 0)";
+    const loadingBar = document.querySelector(".loading-content");
+    loadingBar.style.transform = "translate3d(-100%, 0, 0)";
     setTimeout(() => {
       loadingBar.style.transform = "translate3d(-33%, 0, 0)";
     }, 2000);

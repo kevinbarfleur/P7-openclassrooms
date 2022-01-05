@@ -8,6 +8,15 @@ const togglePlaces = document.querySelector(".toggle-places");
 const autocompleteContainer = document.querySelector(".autocomplete-container");
 const cancelModal = document.querySelector(".cancel-modal");
 
+const refreshNotification = () => {
+  const template = `
+  Récupération des établissements
+  <div class="loading-container">
+    <div class="loading-content"></div>
+  </div>
+  `;
+};
+
 const closeButtons = document.querySelectorAll(".close-button");
 closeButtons.forEach((button) => {
   button.addEventListener("click", () => {
